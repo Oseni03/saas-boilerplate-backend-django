@@ -41,6 +41,7 @@ urlpatterns = [
         include(
             [
                 path("", include("apps.users.urls")),
+                path("notifications/", include("apps.notifications.urls")),
             ]
         ),
     ),

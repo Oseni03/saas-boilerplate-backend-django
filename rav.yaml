@@ -7,3 +7,7 @@ scripts:
     - cd src && python manage.py migrate
   create_superuser:
     - cd src && python manage.py createsuperuser --email=admin@gmail.com
+  celery:
+    - cd src && celery -A core worker -l INFO
+  celery_beat:
+    - cd src && celery -A core beat

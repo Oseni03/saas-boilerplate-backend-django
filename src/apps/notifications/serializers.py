@@ -4,6 +4,15 @@ from rest_framework import serializers
 from . import models
 
 
+class NotificationSerializer(serializers.ModelSerializer):
+    id = hidrest.HashidSerializerCharField(
+        source_field="notifications.Notification.id", source="notification.id", read_only=True
+    )
+    class Meta:
+        model = models.Notification
+        fields = ("id", "type", "is_read", "created_at", "data", "issuer")
+
+
 class UpdateNotificationSerializer(serializers.ModelSerializer):
     id = hidrest.HashidSerializerCharField(
         source_field="notifications.Notification.id", source="notification.id", read_only=True

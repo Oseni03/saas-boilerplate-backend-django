@@ -8,6 +8,8 @@ from common.acl.helpers import CommonGroups
 from common.models import ImageWithThumbnailMixin
 from common.storages import UniqueFilePathGenerator
 
+from djstripe import models as djstripe_models
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -103,3 +105,8 @@ class UserProfile(models.Model):
     def __str__(self) -> str:
         full_name = f"{self.first_name} {self.last_name}".strip()
         return full_name if full_name else self.user.email
+
+    @property
+    def customer(self):
+        (customer, _) = djstripe_models.Customer.get_or_create(self)
+        return customer

@@ -342,7 +342,7 @@ STRIPE_ENABLED = '<CHANGE_ME>' not in STRIPE_LIVE_SECRET_KEY or '<CHANGE_ME>' no
 
 SUBSCRIPTION_TRIAL_PERIOD_DAYS = env("SUBSCRIPTION_TRIAL_PERIOD_DAYS", default=7)
 
-NOTIFICATIONS_STRATEGIES = ["InAppNotificationStrategy"]
+NOTIFICATIONS_STRATEGIES = ["InAppNotificationStrategy", "EmailNotificationStrategy", "SMSNotificationStrategy", "PushNotificationStrategy"]
 
 WEB_SOCKET_API_ENDPOINT_URL = env("WEB_SOCKET_API_ENDPOINT_URL", default="")
 
@@ -394,3 +394,8 @@ EMAIL_REPLY_ADDRESS = env.list("EMAIL_REPLY_ADDRESS", default=(EMAIL_FROM_ADDRES
 
 # If you want to use the SESv2 client
 # USE_SES_V2 = True
+
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_PHONE_NUMBER = env("TWILIO_PHONE_NUMBER", default="")
+FCM_SERVER_KEY = env("FCM_SERVER_KEY", default="")

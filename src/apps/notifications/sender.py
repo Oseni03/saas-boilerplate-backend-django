@@ -5,6 +5,7 @@ from django.conf import settings
 from . import strategies
 from .exceptions import NotificationStrategyException
 
+User = settings.AUTH_USER_MODEL
 
 @lru_cache
 def get_enabled_strategies():
@@ -22,7 +23,7 @@ def get_enabled_strategies():
     return enabled_strategies
 
 
-def send_notification(user: str, type: str, data: dict, issuer: str):
+def send_notification(user: User, type: str, message: str, data: dict = None, issuer: str = None):
     for strategy in get_enabled_strategies():
         if strategy.should_send_notification(user, type):
-            strategy.send_notification(user, type, data, issuer)
+            strategy.send_notification(user, type, message, data, issuer)

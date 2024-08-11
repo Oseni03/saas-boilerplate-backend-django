@@ -35,3 +35,12 @@ class MarkReadAllNotificationsView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         services.NotificationService.mark_read_all_user_notifications(user=request.user)
         return Response({"ok": True}, status=status.HTTP_200_OK)
+
+
+class NotificationPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.NotificationPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        obj, _ = models.NotificationPreference.objects.get_or_create(user=self.request.user)
+        return obj

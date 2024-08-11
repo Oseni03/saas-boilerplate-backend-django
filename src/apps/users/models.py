@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
 
+from apps.notifications.models import NotificationPreference
 from common.acl.helpers import CommonGroups
 from common.models import ImageWithThumbnailMixin
 from common.storages import UniqueFilePathGenerator
@@ -24,6 +25,7 @@ class UserManager(BaseUserManager):
         user.groups.add(user_group)
 
         UserProfile.objects.create(user=user)
+        NotificationPreference.objects.create(user=user)
 
         return user
 
@@ -92,6 +94,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     first_name = models.CharField(max_length=40, blank=True, default='')
     last_name = models.CharField(max_length=40, blank=True, default='')
+    phone_number = models.CharField(max_length=15, blank=True, default="")
+    device_token = models.CharField(max_length=40, blank=True, default="")
     avatar = models.OneToOneField(
         UserAvatar, on_delete=models.SET_NULL, null=True, blank=True, related_name="user_profile"
     )

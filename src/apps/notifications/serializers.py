@@ -10,7 +10,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = models.Notification
-        fields = ("id", "type", "is_read", "created_at", "data", "issuer")
+        fields = ("id", "type", "message", "is_read", "created_at", "data", "issuer")
 
 
 class UpdateNotificationSerializer(serializers.ModelSerializer):
@@ -29,3 +29,18 @@ class UpdateNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Notification
         fields = ("id", "is_read")
+
+
+class NotificationPreferenceSerializer(serializers.ModelSerializer):
+    id = hidrest.HashidSerializerCharField(
+        source_field="notifications.NotificationPreference.id", read_only=True
+    )
+    class Meta:
+        model = models.NotificationPreference
+        fields = (
+            "id", "email_notification", 
+            "inapp_notification", 
+            "push_notification", 
+            "sms_notification", 
+            "updated_at"
+        )

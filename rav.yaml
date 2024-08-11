@@ -5,6 +5,8 @@ scripts:
     - cd src && python manage.py makemigrations
   migrate:
     - cd src && python manage.py migrate
+  shell:
+    - cd src && python manage.py shell
   create_superuser:
     - cd src && python manage.py createsuperuser --email=admin@gmail.com
   celery:

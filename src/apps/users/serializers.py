@@ -29,7 +29,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserProfile
-        fields = ("id", "first_name", "last_name", "email", "roles", "avatar")
+        fields = ("id", "first_name", "last_name", "phone_number", "email", "roles", "avatar")
 
     @staticmethod
     def validate_avatar(avatar):

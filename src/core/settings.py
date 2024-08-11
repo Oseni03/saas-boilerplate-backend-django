@@ -73,7 +73,7 @@ LOCAL_APPS = [
     "apps.users",
     "apps.notifications",
     "apps.feedbacks",
-    "apps.pricing",
+    "apps.finances",
 ]
 
 INSTALLED_APPS = (
@@ -99,7 +99,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "apps.users.middleware.UserProfileMiddleware",
+    # "apps.users.middleware.UserProfileMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",

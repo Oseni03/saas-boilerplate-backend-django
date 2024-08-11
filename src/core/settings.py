@@ -72,6 +72,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.users",
     "apps.notifications",
+    "apps.feedbacks",
 ]
 
 INSTALLED_APPS = (

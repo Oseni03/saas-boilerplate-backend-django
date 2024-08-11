@@ -18,7 +18,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django_asgi_app = get_asgi_application()
 
 from apps.users.authentication import JSONWebTokenCookieMiddleware  # noqa
-# from apps.websockets.consumers import DefaultGraphqlWsConsumer  # noqa
+from apps.notifications.consumers import NotificationConsumer  # noqa
 
 application = ProtocolTypeRouter(
     {
@@ -26,7 +26,7 @@ application = ProtocolTypeRouter(
         "websocket": JSONWebTokenCookieMiddleware(
             URLRouter(
                 [
-                    # path("api/graphql/", DefaultGraphqlWsConsumer.as_asgi()),
+                    path("api/ws/notications/", NotificationConsumer.as_asgi()),
                 ]
             )
         ),

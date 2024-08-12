@@ -31,7 +31,7 @@ urlpatterns = [
         "admin/", 
         include(
             [
-                # path("finances/", include("apps.finances.urls_admin")), 
+                path("finances/", include("apps.finances.urls_admin")), 
                 path("", admin.site.urls)
             ]
         ),

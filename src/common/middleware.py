@@ -1,19 +1,21 @@
-from aws_xray_sdk.core import xray_recorder
-from config import settings
+# from aws_xray_sdk.core import xray_recorder
+from django.conf import settings
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.db.migrations.executor import MigrationExecutor
 from django.http import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
-from graphql import GraphQLResolveInfo
-from promise import is_thenable
+from django.core.exceptions import ImproperlyConfigured
+# from graphql import GraphQLResolveInfo
+# from promise import is_thenable
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from sentry_sdk import capture_exception
-from sentry_sdk import capture_message
-from sentry_sdk import push_scope
+# from sentry_sdk import capture_exception
+# from sentry_sdk import capture_message
+# from sentry_sdk import push_scope
 
+from apps.users.models import UserProfile
 from apps.users.utils import set_auth_cookie, reset_auth_cookie
-from common.graphql.exceptions import GraphQlValidationError
+# from common.graphql.exceptions import GraphQlValidationError
 
 
 class HealthCheckMiddleware(MiddlewareMixin):
@@ -66,11 +68,11 @@ class SentryMiddleware(object):
                 capture_exception(error)
             raise error
 
-    def resolve(self, next, root, info: GraphQLResolveInfo, **args):
-        promise = next(root, info, **args)
-        if is_thenable(promise):
-            return promise.catch(self.on_error)
-        return promise
+    # def resolve(self, next, root, info: GraphQLResolveInfo, **args):
+    #     promise = next(root, info, **args)
+    #     if is_thenable(promise):
+    #         return promise.catch(self.on_error)
+    #     return promise
 
 
 class ManageCookiesMiddleware:
@@ -89,3 +91,20 @@ class ManageCookiesMiddleware:
                 response.delete_cookie(cookie)
 
         return response
+
+
+class UserProfileMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        # AuthenticationMiddleware is required so that request.user exists.
+        if not hasattr(request, "user"):
+            raise ImproperlyConfigured(
+                "The Django remote user auth middleware requires the"
+                " authentication middleware to be installed.  Edit your"
+                " MIDDLEWARE setting to insert"
+                " 'django.contrib.auth.middleware.AuthenticationMiddleware'"
+                " before the UserProfileMiddleware class."
+            )
+        
+        if request.user.is_authenticated:
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            request.profile = profile

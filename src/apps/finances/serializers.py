@@ -15,7 +15,7 @@ from .services import subscriptions, customers
 class PaymentIntentSerializer(serializers.ModelSerializer):
     """**IMPORTANT:** Update this serializer with real products and prices created in Stripe"""
 
-    product = serializers.ChoiceField(
+    price = serializers.ChoiceField(
         choices=(
             ('5', 'A'),
             ('10', 'B'),
@@ -27,14 +27,14 @@ class PaymentIntentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = djstripe_models.PaymentIntent
-        fields = ('id', 'amount', 'currency', 'client_secret', 'product')
+        fields = ('id', 'amount', 'currency', 'client_secret', 'price')
         read_only_fields = ('id', 'amount', 'currency', 'client_secret')
 
     def create(self, validated_data):
         request = self.context['request']
 
-        (customer, _) = djstripe_models.Customer.get_or_create(request.tenant)
-        amount = int(validated_data['product']) * 100
+        (customer, _) = djstripe_models.Customer.get_or_create(request.user.profile)
+        amount = int(validated_data['price']) * 100
         payment_intent_response = djstripe_models.PaymentIntent._api_create(
             amount=amount,
             currency="usd",
@@ -44,7 +44,7 @@ class PaymentIntentSerializer(serializers.ModelSerializer):
         return djstripe_models.PaymentIntent.sync_from_stripe_data(payment_intent_response)
 
     def update(self, instance: djstripe_models.PaymentIntent, validated_data):
-        amount = int(validated_data['product']) * 100
+        amount = int(validated_data['price']) * 100
         payment_intent_response = instance._api_update(amount=amount)
         return djstripe_models.PaymentIntent.sync_from_stripe_data(payment_intent_response)
 
@@ -58,7 +58,7 @@ class SetupIntentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
 
-        (customer, _) = djstripe_models.Customer.get_or_create(request.tenant)
+        (customer, _) = djstripe_models.Customer.get_or_create(request.user.profile)
         setup_intent_response = djstripe_models.SetupIntent._api_create(
             customer=customer.id, payment_method_types=['card'], usage='off_session'
         )
@@ -79,7 +79,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 
 class UpdateDefaultPaymentMethodSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
-        customer, _ = djstripe_models.Customer.get_or_create(self.context['request'].tenant)
+        customer, _ = djstripe_models.Customer.get_or_create(self.context['request'].user.profile)
         customers.set_default_payment_method(customer=customer, payment_method=instance)
         return instance
 
@@ -151,7 +151,7 @@ class SubscriptionSchedulePhaseSerializer(serializers.Serializer):
         return SubscriptionSchedulePhaseItemSerializer(obj['items'][0]).data
 
 
-class TenantSubscriptionScheduleSerializer(serializers.ModelSerializer):
+class SubscriptionScheduleSerializer(serializers.ModelSerializer):
     subscription = SubscriptionSerializer(source='customer.subscription', read_only=True)
     default_payment_method = PaymentMethodSerializer(source='customer.default_payment_method', read_only=True)
     phases = serializers.SerializerMethodField()
@@ -231,7 +231,7 @@ class TenantSubscriptionScheduleSerializer(serializers.ModelSerializer):
         fields = ('subscription', 'phases', 'can_activate_trial', 'price', 'default_payment_method')
 
 
-class CancelTenantActiveSubscriptionSerializer(serializers.ModelSerializer):
+class CancelActiveSubscriptionSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if subscriptions.is_current_schedule_phase_plan(schedule=self.instance, plan_config=constants.FREE_PLAN):
             raise serializers.ValidationError(
@@ -308,7 +308,7 @@ class AdminStripePaymentIntentRefundSerializer(serializers.Serializer):
         return instance
 
 
-class TenantChargeInvoiceItemSerializer(serializers.ModelSerializer):
+class ChargeInvoiceItemSerializer(serializers.ModelSerializer):
     price = PriceSerializer()
 
     class Meta:
@@ -316,16 +316,16 @@ class TenantChargeInvoiceItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'price')
 
 
-class TenantChargeInvoiceSerializer(serializers.ModelSerializer):
-    items = TenantChargeInvoiceItemSerializer(source='invoiceitems', many=True)
+class ChargeInvoiceSerializer(serializers.ModelSerializer):
+    items = ChargeInvoiceItemSerializer(source='invoiceitems', many=True)
 
     class Meta:
         model = djstripe_models.Invoice
         fields = ('id', 'billing_reason', 'items')
 
 
-class TenantChargeSerializer(serializers.ModelSerializer):
-    invoice = TenantChargeInvoiceSerializer()
+class ChargeSerializer(serializers.ModelSerializer):
+    invoice = ChargeInvoiceSerializer()
     billing_details = serializers.JSONField(read_only=True)
     payment_method_details = serializers.JSONField(read_only=True)
 

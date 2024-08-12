@@ -110,3 +110,7 @@ class UserProfile(models.Model):
     def customer(self):
         (customer, _) = djstripe_models.Customer.get_or_create(self)
         return customer
+    
+    @property
+    def email(self):
+        return self.user.email

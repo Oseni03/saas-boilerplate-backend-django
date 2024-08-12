@@ -1,6 +1,6 @@
 from rest_access_policy import AccessPolicy
 
-from .helpers import make_statement, Action, Effect, Principal, CommonGroups, TenantRoles
+from .helpers import make_statement, Action, Effect, Principal, CommonGroups
 
 
 class AdminFullAccess(AccessPolicy):

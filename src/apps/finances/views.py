@@ -1,13 +1,15 @@
 from rest_framework import generics, permissions, status
 from djstripe import models as djstripe_models
 
+from apps.users.models import UserProfile
+
 from .services import subscriptions
 
 from . import serializers
 
 
 class ChangeActiveSubscriptionView(generics.UpdateAPIView):
-    serializer_class = serializers.TenantSubscriptionScheduleSerializer
+    serializer_class = serializers.SubscriptionScheduleSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
@@ -15,11 +17,12 @@ class ChangeActiveSubscriptionView(generics.UpdateAPIView):
 
 
 class CancelActiveSubscriptionView(generics.UpdateAPIView):
-    serializer_class = serializers.CancelTenantActiveSubscriptionSerializer
+    serializer_class = serializers.CancelActiveSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
-        return subscriptions.get_schedule(profile=self.request.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return subscriptions.get_schedule(profile=profile)
 
 
 class PaymentMethodView(generics.RetrieveUpdateDestroyAPIView):
@@ -27,7 +30,8 @@ class PaymentMethodView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.PaymentMethodSerializer
     
     def get_queryset(self):
-        return djstripe_models.PaymentMethod.objects.filter("customer__subscriber"==self.request.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return djstripe_models.PaymentMethod.objects.filter(customer__subscriber=profile)
 
 
 class CreatePaymentIntentView(generics.CreateAPIView):
@@ -35,7 +39,8 @@ class CreatePaymentIntentView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return djstripe_models.PaymentIntent.objects.filter("customer__subscriber"==self.request.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return djstripe_models.PaymentIntent.objects.filter(customer__subscriber=profile)
 
 
 class UpdatePaymentIntentView(generics.UpdateAPIView):
@@ -43,7 +48,8 @@ class UpdatePaymentIntentView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return djstripe_models.PaymentIntent.objects.filter("customer__subscriber"==self.request.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return djstripe_models.PaymentIntent.objects.filter(customer__subscriber=profile)
 
 
 class CreateSetupIntentView(generics.CreateAPIView):
@@ -51,4 +57,4 @@ class CreateSetupIntentView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return djstripe_models.SetupIntent.objects.filter("customer__subscriber"==self.request.profile)
+        return djstripe_models.SetupIntent.objects.filter(customer__subscriber=self.request.profile)

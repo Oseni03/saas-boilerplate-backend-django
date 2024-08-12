@@ -91,18 +91,18 @@ MIDDLEWARE = [
     #  HealthCheckMiddleware needs to be before the HostsRequestMiddleware
     # "common.middleware.HealthCheckMiddleware",
     # "aws_xray_sdk.ext.django.middleware.XRayMiddleware",
-    # "common.middleware.ManageCookiesMiddleware",
-    # "common.middleware.SetAuthTokenCookieMiddleware",
+    "common.middleware.ManageCookiesMiddleware",
+    "common.middleware.SetAuthTokenCookieMiddleware",
     "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # "apps.users.middleware.UserProfileMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
+    "common.middleware.UserProfileMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"

@@ -1,16 +1,22 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions
 from djstripe import models as djstripe_models
 
 from apps.users.models import UserProfile
+from common.permissions import IsSubscribed
 
 from .services import subscriptions
 
 from . import serializers
 
 
-class ChangeActiveSubscriptionView(generics.UpdateAPIView):
+class CreateSubscriptionView(generics.CreateAPIView):
     serializer_class = serializers.SubscriptionScheduleSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class ChangeActiveSubscriptionView(generics.UpdateAPIView):
+    serializer_class = serializers.SubscriptionScheduleSerializer
+    permission_classes = [permissions.IsAuthenticated, IsSubscribed]
     
     def get_object(self):
         return subscriptions.get_schedule(profile=self.request.profile)
@@ -18,7 +24,7 @@ class ChangeActiveSubscriptionView(generics.UpdateAPIView):
 
 class CancelActiveSubscriptionView(generics.UpdateAPIView):
     serializer_class = serializers.CancelActiveSubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsSubscribed]
     
     def get_object(self):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)

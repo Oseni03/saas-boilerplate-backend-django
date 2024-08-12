@@ -14,16 +14,20 @@ from .services import subscriptions, customers
 
 class PaymentIntentSerializer(serializers.ModelSerializer):
     """**IMPORTANT:** Update this serializer with real products and prices created in Stripe"""
-
     price = serializers.ChoiceField(
-        choices=(
-            ('5', 'A'),
-            ('10', 'B'),
-            ('15', 'C'),
-        ),
+        choices=models.Price.objects.filter(active=True),
         required=True,
         write_only=True,
     )
+    # price = serializers.ChoiceField(
+    #     choices=(
+    #         ('5', 'A'),
+    #         ('10', 'B'),
+    #         ('15', 'C'),
+    #     ),
+    #     required=True,
+    #     write_only=True,
+    # )
 
     class Meta:
         model = djstripe_models.PaymentIntent
@@ -32,20 +36,21 @@ class PaymentIntentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context['request']
-
+        price = validated_data["price"]
         (customer, _) = djstripe_models.Customer.get_or_create(request.user.profile)
-        amount = int(validated_data['price']) * 100
+        # amount = int(validated_data['price']) * 100
         payment_intent_response = djstripe_models.PaymentIntent._api_create(
-            amount=amount,
-            currency="usd",
+            amount=price.unit_amount,
+            currency=price.currency,
             customer=customer.id,
             setup_future_usage="off_session",
         )
         return djstripe_models.PaymentIntent.sync_from_stripe_data(payment_intent_response)
 
     def update(self, instance: djstripe_models.PaymentIntent, validated_data):
-        amount = int(validated_data['price']) * 100
-        payment_intent_response = instance._api_update(amount=amount)
+        price = validated_data["price"]
+        # amount = int(validated_data['price']) * 100
+        payment_intent_response = instance._api_update(amount=price.unit_amount)
         return djstripe_models.PaymentIntent.sync_from_stripe_data(payment_intent_response)
 
 
@@ -96,7 +101,7 @@ class PriceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = djstripe_models.Price
-        fields = ('id', 'product', 'unit_amount')
+        fields = ('id', 'product', 'unit_amount', 'type')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):

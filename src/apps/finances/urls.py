@@ -8,6 +8,7 @@ stripe_urls = [
 ]
 
 urlpatterns = [
+    path("create-subscription/", views.CreateSubscriptionView.as_view(), name="create-subscription"),
     path("change-subscription/", views.ChangeActiveSubscriptionView.as_view(), name="change-active-subscription"),
     path("cancel-subscription/", views.CancelActiveSubscriptionView.as_view(), name="cancel-active-subscription"),
     path("payment-method/<pk>", views.PaymentMethodView.as_view(), name="payment-method"),

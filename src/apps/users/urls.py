@@ -1,17 +1,20 @@
+from django.conf import settings
 from django.urls import path, include
-from django.urls import re_path
+from social_core.utils import setting_name
 from social_django import views as django_social_views
+
+extra = getattr(settings, setting_name("TRAILING_SLASH"), True) and "/" or ""
 
 from . import views
 
 social_patterns = [
     # authentication / association
-    re_path(r'^login/(?P<backend>[^/]+)/$', django_social_views.auth, name='begin'),
-    re_path(r'^complete/(?P<backend>[^/]+)/$', views.complete, name='complete'),
+    path(f"login/<str:backend>{extra}", django_social_views.auth, name='begin'),
+    path(f"complete/<str:backend>{extra}", views.complete, name='complete'),
     # disconnection
-    re_path(r'^disconnect/(?P<backend>[^/]+)/$', django_social_views.disconnect, name='disconnect'),
-    re_path(
-        r'^disconnect/(?P<backend>[^/]+)/(?P<association_id>\d+)/$',
+    path(f"disconnect/<str:backend>{extra}", django_social_views.disconnect, name='disconnect'),
+    path(
+        f"disconnect/<str:backend>/<int:association_id>{extra}",
         django_social_views.disconnect,
         name='disconnect_individual',
     ),

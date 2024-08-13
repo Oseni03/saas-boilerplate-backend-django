@@ -14,6 +14,7 @@ SUBSCRIPTION_PERMISSIONS =[
 class Subscription(models.Model):
     name = models.CharField(max_length=120)
     groups = models.ManyToManyField(Group)
+    active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(
         Permission, 
         limit_choices_to={
@@ -23,3 +24,6 @@ class Subscription(models.Model):
 
     class Meta:
         permissions = SUBSCRIPTION_PERMISSIONS
+    
+    def __str__(self) -> str:
+        return str(self.name)

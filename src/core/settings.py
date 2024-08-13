@@ -74,6 +74,7 @@ LOCAL_APPS = [
     "apps.notifications",
     "apps.feedbacks",
     "apps.finances",
+    "apps.subscriptions",
 ]
 
 INSTALLED_APPS = (

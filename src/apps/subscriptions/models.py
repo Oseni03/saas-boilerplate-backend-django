@@ -1,7 +1,11 @@
 from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
 from django.contrib.auth.models import Group, Permission
 
 from .constants import CommomPermissions
+
+User = settings.AUTH_USER_MODEL
 
 
 SUBSCRIPTION_PERMISSIONS =[
@@ -27,3 +31,24 @@ class Subscription(models.Model):
     
     def __str__(self) -> str:
         return str(self.name)
+
+
+class UserSubscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return f"{self.user}: {self.subscription}"
+
+
+def user_sub_post_save(sender, instance, *args, **kwargs):
+    user_sub_instance = instance
+    user = user_sub_instance.user
+    print(user_sub_instance)
+    subscription_obj = user_sub_instance.subscription
+    groups = subscription_obj.groups.all()
+    user.groups.set(groups)
+
+
+post_save.connect(user_sub_post_save, UserSubscription)

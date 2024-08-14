@@ -1,7 +1,7 @@
 import hashid_field
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.contrib.auth.models import Group, Permission
 
 from common import billing
@@ -151,6 +151,11 @@ class UserSubscription(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"
+    
+    def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
+        if self.stripe_id:
+            billing.delete_subscription(self.stripe_id)
+        return super().delete(*args, **kwargs)
 
 
 def user_sub_post_save(sender, instance, *args, **kwargs):
@@ -186,3 +191,24 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
 
 
 post_save.connect(user_sub_post_save, UserSubscription)
+
+
+def user_sub_post_delete(sender, instance, *args, **kwargs):
+    user_sub_instance = instance
+    user = user_sub_instance.user
+    
+    # Set the user group to ther other type of group the user might belong to 
+    # excluding all active subscription group
+
+    # To get the list of all active subscriptions
+    subs_qs = Subscription.objects.filter(active=True)
+    # To get the list of group ids for each of the subscriptions above
+    subs_groups = subs_qs.values_list("groups__id", flat=True)
+    subs_groups_set = set(subs_groups)
+    # To get the list of group ids the user belongs to
+    current_groups = user.groups.all().values_list("id", flat=True)
+    final_group_ids = set(current_groups) - subs_groups_set
+    user.groups.set(final_group_ids)
+
+
+post_delete.connect(user_sub_post_delete, UserSubscription)

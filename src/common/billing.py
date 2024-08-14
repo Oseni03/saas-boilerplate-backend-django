@@ -87,3 +87,10 @@ def update_subscription(subscription_id: str, new_price_id: str, raw=False):
     if raw:
         return response
     return response.id
+
+
+def delete_subscription(subscription_id: str, raw=False):
+    response = stripe.Subscription.delete(subscription_id)
+    if raw:
+        return response
+    return response.id

@@ -29,3 +29,11 @@ class UpdateUserSubscriptionView(generics.UpdateAPIView):
 
     def get_object(self):
         return get_object_or_404(models.UserSubscription, user=self.request.user)
+
+
+class CancelUserSubscriptionView(generics.DestroyAPIView):
+    serializer_class = serializers.UserSubscriptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return get_object_or_404(models.UserSubscription, user=self.request.user)

@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 
+from common import billing
+
 
 # Create your models here.
 class Customer(models.Model):
@@ -9,3 +11,9 @@ class Customer(models.Model):
 
     def __str__(self) -> str:
         return str(self.user)
+    
+    def save(self, *args, **kwargs) -> None:
+        if not self.stripe_id:
+            stripe_id = billing.create_customer(self.user.email)
+            self.stripe_id = stripe_id
+        super().save(*args, **kwargs)

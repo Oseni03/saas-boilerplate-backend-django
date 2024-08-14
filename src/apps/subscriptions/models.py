@@ -34,6 +34,9 @@ class Subscription(models.Model):
     )
     stripe_id = models.CharField(max_length=150, null=True, blank=True)
 
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+
     class Meta:
         permissions = SUBSCRIPTION_PERMISSIONS
     
@@ -94,7 +97,7 @@ class SubscriptionPrice(models.Model):
     @property
     def strip_amount(self):
         """ remove decimal places for stripe"""
-        return self.amount * 100
+        return int(self.amount * 100)
     
     def save(self, *args, **kwargs) -> None:
         if not self.stripe_id and self.product_stripe_id:
@@ -116,6 +119,9 @@ class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
+
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"

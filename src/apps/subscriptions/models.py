@@ -26,6 +26,7 @@ class Subscription(models.Model):
     name = models.CharField(max_length=120)
     groups = models.ManyToManyField(Group)
     active = models.BooleanField(default=True)
+    order = models.IntegerField(default=1)
     permissions = models.ManyToManyField(
         Permission, 
         limit_choices_to={
@@ -34,10 +35,11 @@ class Subscription(models.Model):
     )
     stripe_id = models.CharField(max_length=150, null=True, blank=True)
 
-    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     class Meta:
+        ordering = ["order", "-updated"]
         permissions = SUBSCRIPTION_PERMISSIONS
     
     def __str__(self) -> str:
@@ -83,7 +85,14 @@ class SubscriptionPrice(models.Model):
     )
     trial_period_days = models.IntegerField(null=True, blank=True)
     active = models.BooleanField(default=True)
+    order = models.IntegerField(default=1, help_text="Ordering on Django pricing page")
+    featured = models.BooleanField(default=True, help_text="Featured on Django pricing page")
     stripe_id = models.CharField(max_length=150, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["subscription__order", "order", "featured", "-updated"]
     
     def __str__(self) -> str:
         return str(self.subscription)
@@ -112,6 +121,12 @@ class SubscriptionPrice(models.Model):
             )
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)
+        if self.featured and self.subscription:
+            qs = Subscription.objects.filter(
+                subscription=self.subscription,
+                interval=self.interval
+            ).exclude(id=self.id)
+            qs.update(featured=False)
 
 
 class UserSubscription(models.Model):
@@ -120,8 +135,8 @@ class UserSubscription(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
 
-    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"

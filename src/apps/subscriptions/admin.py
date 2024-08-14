@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import Subscription, UserSubscription, SubscriptionPrice
 
 
-class SubscriptionPriceInline(admin.TabularInline):
+class SubscriptionPriceInline(admin.StackedInline):
     model = SubscriptionPrice
     readonly_fields = ["stripe_id"]
     can_delete = False

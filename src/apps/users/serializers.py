@@ -12,7 +12,7 @@ from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 from common.decorators import context_user_required
 
-from . import models, tokens, jwt, notifications
+from . import models, tokens, jwt, notifications, signals
 from .services.users import get_role_names
 from .services import otp as otp_services
 from .utils import generate_otp_auth_token
@@ -112,6 +112,7 @@ class UserAccountConfirmationSerializer(serializers.Serializer):
         user = validated_data.pop("user")
         user.is_confirmed = True
         user.save()
+        signals.email_confirmed_signal.send(models.user)
         return {"ok": True}
 
 

@@ -14,6 +14,9 @@ class Customer(models.Model):
     
     def save(self, *args, **kwargs) -> None:
         if not self.stripe_id:
-            stripe_id = billing.create_customer(self.user.email)
+            stripe_id = billing.create_customer(
+                email=self.user.email,
+                metadata={"user_id": self.user.id}
+            )
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)

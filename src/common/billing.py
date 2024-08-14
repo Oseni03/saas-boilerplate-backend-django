@@ -18,3 +18,13 @@ def create_customer(email: str, metadata: dict, raw=False):
     if raw:
         return response
     return response.id # stripe_id
+
+
+def create_product(name: str, metadata: dict, raw=False):
+    response = stripe.Product.create(
+        name=name, 
+        metadata=metadata,
+    )
+    if raw:
+        return response
+    return response.id # stripe_id

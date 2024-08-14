@@ -1,3 +1,4 @@
+import hashid_field
 from django.db import models
 from django.conf import settings
 
@@ -6,6 +7,7 @@ from common import billing
 
 # Create your models here.
 class Customer(models.Model):
+    id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     stripe_id = models.CharField(max_length=150, null=True, blank=True)
 

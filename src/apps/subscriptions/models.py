@@ -1,7 +1,10 @@
+import hashid_field
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.contrib.auth.models import Group, Permission
+
+from common import billing
 
 from .constants import CommomPermissions
 
@@ -16,6 +19,10 @@ SUBSCRIPTION_PERMISSIONS =[
 
 # Create your models here.
 class Subscription(models.Model):
+    """ 
+    Subscription = Stripe Product
+    """
+    id: str = hashid_field.HashidAutoField(primary_key=True)
     name = models.CharField(max_length=120)
     groups = models.ManyToManyField(Group)
     active = models.BooleanField(default=True)
@@ -25,15 +32,26 @@ class Subscription(models.Model):
             "content_type__app_label": "subscriptions", 
             "codename__in": [x[0] for x in SUBSCRIPTION_PERMISSIONS]}
     )
+    stripe_id = models.CharField(max_length=150, null=True, blank=True)
 
     class Meta:
         permissions = SUBSCRIPTION_PERMISSIONS
     
     def __str__(self) -> str:
         return str(self.name)
+    
+    def save(self, *args, **kwargs) -> None:
+        if not self.stripe_id:
+            stripe_id = billing.create_product(
+                name=self.name,
+                metadata={"subscription_plan_id": self.id}
+            )
+            self.stripe_id = stripe_id
+        super().save(*args, **kwargs)
 
 
 class UserSubscription(models.Model):
+    id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)

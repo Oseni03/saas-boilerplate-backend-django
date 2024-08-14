@@ -44,7 +44,68 @@ class Subscription(models.Model):
         if not self.stripe_id:
             stripe_id = billing.create_product(
                 name=self.name,
-                metadata={"subscription_plan_id": self.id}
+                metadata={"subscription_plan_id": self.id},
+                raw=False
+            )
+            self.stripe_id = stripe_id
+        super().save(*args, **kwargs)
+
+
+class SubscriptionPrice(models.Model):
+    """ 
+    Subscription price = Stripe Price
+    """
+    class SubscriptionCurrency(models.TextChoices):
+        DOLLAR = ("usd"), ("USD")
+        EURO = ("euro"), ("EURO") # Not Sure if correct
+
+    class SubscriptionInterval(models.TextChoices):
+        MONTHLY = ("month"), ("Monthly")
+        YEARLY = ("year"), ("Yearly")
+        DAILY = ("day"), ("Daily")
+        WEEKLY = ("week"), ("Weekly")
+
+    id: str = hashid_field.HashidAutoField(primary_key=True)
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
+    currency = models.CharField(
+        max_length=15, 
+        choices=SubscriptionCurrency.choices, 
+        default=SubscriptionCurrency.DOLLAR
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    interval = models.CharField(
+        max_length=25, 
+        choices=SubscriptionInterval.choices, 
+        default=SubscriptionInterval.MONTHLY
+    )
+    trial_period_days = models.IntegerField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+    stripe_id = models.CharField(max_length=150, null=True)
+    
+    def __str__(self) -> str:
+        return str(self.subscription)
+    
+    @property
+    def product_stripe_id(self):
+        if not self.subscription:
+            return None
+        return self.subscription.stripe_id
+    
+    @property
+    def strip_amount(self):
+        """ remove decimal places for stripe"""
+        return self.amount * 100
+    
+    def save(self, *args, **kwargs) -> None:
+        if not self.stripe_id and self.product_stripe_id:
+            stripe_id = billing.create_price(
+                currency=self.currency,
+                unit_amount=self.strip_amount,
+                interval=self.interval,
+                trial_period_days=self.trial_period_days,
+                product=self.product_stripe_id,
+                metadata={"subscription_price_id": self.id},
+                raw=False
             )
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)

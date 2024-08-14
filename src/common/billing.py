@@ -28,3 +28,27 @@ def create_product(name: str, metadata: dict, raw=False):
     if raw:
         return response
     return response.id # stripe_id
+
+
+def create_price(
+        currency: str, 
+        unit_amount: int, 
+        interval: str, 
+        trial_period_days,
+        product: str, 
+        metadata: dict, 
+        raw=False
+    ): 
+    response = stripe.Price.create(
+        currency=currency, 
+        unit_amount=unit_amount, 
+        recurring={
+            "interval": interval,
+            "trial_period_days": trial_period_days,
+        }, 
+        product=product,
+        metadata=metadata,
+    )
+    if raw:
+        return response
+    return response.id # stripe_id

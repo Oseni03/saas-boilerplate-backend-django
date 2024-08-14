@@ -24,6 +24,7 @@ class Subscription(models.Model):
     """
     id: str = hashid_field.HashidAutoField(primary_key=True)
     name = models.CharField(max_length=120)
+    subtitle = models.TextField(null=True, blank=True)
     groups = models.ManyToManyField(Group)
     active = models.BooleanField(default=True)
     order = models.IntegerField(default=1)
@@ -32,6 +33,10 @@ class Subscription(models.Model):
         limit_choices_to={
             "content_type__app_label": "subscriptions", 
             "codename__in": [x[0] for x in SUBSCRIPTION_PERMISSIONS]}
+    )
+    features = models.TextField(
+        help_text="Features for pricing separated by new line", 
+        blank=True, null=True
     )
     stripe_id = models.CharField(max_length=150, null=True, blank=True)
 
@@ -44,6 +49,10 @@ class Subscription(models.Model):
     
     def __str__(self) -> str:
         return str(self.name)
+    
+    @property
+    def features_list(self):
+        return [x.strip() for x in self.features.split("\n")]
     
     def save(self, *args, **kwargs) -> None:
         if not self.stripe_id:

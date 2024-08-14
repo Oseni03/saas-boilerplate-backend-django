@@ -1,6 +1,7 @@
 from hashid_field import rest
 from rest_framework import serializers
 
+from common import billing
 from .models import SubscriptionPrice, Subscription, UserSubscription
 
 
@@ -42,3 +43,36 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
     
     def get_Subscription_subtitle(self, obj: SubscriptionPrice):
         return obj.subscription.subtitle
+
+
+class UserSubscriptionSerializer(serializers.ModelSerializer):
+    id = rest.HashidSerializerCharField(read_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = UserSubscription
+        fields = ["id", "user", "subscription"]
+    
+    def create(self, validated_data):
+        user = validated_data["user"]
+        subscription = validated_data["subscription"]
+
+        response = billing.create_subscription(
+            user.customer.stripe_id,
+            subscription.stripe_id, # Confirm if it returns the subscription ID or object
+            raw=False
+        )
+        UserSubscription.objects.create(
+            user=user, 
+            subscription=subscription,
+            stripe_id=response["subscription_id"],
+        )
+        return response
+    
+    def update(self, instance, validated_data):
+        billing.update_subscription(
+            instance.stripe_id,
+            validated_data["subscription"].id,
+            raw=False
+        )
+        return super().update(instance, validated_data)

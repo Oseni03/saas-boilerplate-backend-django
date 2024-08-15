@@ -89,11 +89,8 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
                 raw=False
             )
             _user_sub_obj.subscription = subscription
-            _user_sub_obj.stripe_id = response["stripe_id"]
-            _user_sub_obj.client_secret = response["client_secret"]
-            _user_sub_obj.current_period_start = response["current_period_start"]
-            _user_sub_obj.current_period_end = response["current_period_end"]
-            _user_sub_obj.status = response["status"]
+            for k, v in response.items():
+                setattr(_user_sub_obj, k, v)
             _user_sub_obj.save()
             if _former_sub_id and _former_sub_id!=response["stripe_id"]:
                 # billing.delete_subscription(_former_sub_id)
@@ -122,16 +119,16 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         if _user_sub_obj is None:
             raise serializers.ValidationError(_('There is an error with your account, please contact us'))
 
-        payment_method = billing.get_payment_method(response["payment_method"])
-        print(payment_method)
+        # payment_method = billing.get_payment_method(response["payment_method"])
+        # print(payment_method)
 
-        PaymentMethod.objects.get_or_create(
-            user=user,
-            last4=payment_method["last4"],
-            exp_month=payment_method["exp_month"],
-            exp_year=payment_method["exp_year"],
-            stripe_id=payment_method["id"],
-        )
+        # PaymentMethod.objects.get_or_create(
+        #     user=user,
+        #     last4=payment_method["last4"],
+        #     exp_month=payment_method["exp_month"],
+        #     exp_year=payment_method["exp_year"],
+        #     stripe_id=payment_method["id"],
+        # )
         return _user_sub_obj
     
     def update(self, instance, validated_data):
@@ -144,21 +141,19 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             raw=False
         )
         instance.subscription = validated_data["subscription"]
-        instance.stripe_id = response["stripe_id"]
-        instance.client_secret = response["client_secret"]
-        instance.current_period_start = response["current_period_start"]
-        instance.current_period_end = response["current_period_end"]
+        for k, v in response.items():
+            setattr(instance, k, v)
         instance.save()
-        payment_method = billing.get_payment_method(response["payment_method"])
-        print(payment_method)
+        # payment_method = billing.get_payment_method(response["payment_method"])
+        # print(payment_method)
 
-        PaymentMethod.objects.get_or_create(
-            user=user,
-            last4=payment_method["last4"],
-            exp_month=payment_method["exp_month"],
-            exp_year=payment_method["exp_year"],
-            stripe_id=payment_method["id"],
-        )
+        # PaymentMethod.objects.get_or_create(
+        #     user=user,
+        #     last4=payment_method["last4"],
+        #     exp_month=payment_method["exp_month"],
+        #     exp_year=payment_method["exp_year"],
+        #     stripe_id=payment_method["id"],
+        # )
         return instance
 
 

@@ -72,20 +72,35 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         subscription = validated_data["subscription"]
         price = validated_data["price"]
 
+        try:
+            _user_sub_obj = UserSubscription.objects.get(user)
+            _user_sub_obj.subscription = subscription
+            _user_sub_obj.save()
 
-        response = billing.create_subscription(
-            customer_id=user.customer.stripe_id,
-            trial_period_days=price.trial_period_days,
-            price_id=price.stripe_id,
-            raw=False
-        )
-        print(response)
+            response = billing.update_subscription(
+                _user_sub_obj.stripe_id,
+                price.id,
+                raw=False
+            )
+        except UserSubscription.DoesNotExist:
+            response = billing.create_subscription(
+                customer_id=user.customer.stripe_id,
+                trial_period_days=price.trial_period_days,
+                price_id=price.stripe_id,
+                raw=False
+            )
+            print(response)
 
-        UserSubscription.objects.create(
-            user=user, 
-            subscription=subscription,
-            stripe_id=response["subscription_id"],
-        )
+            _user_sub_obj = UserSubscription.objects.create(
+                user=user, 
+                subscription=subscription,
+                stripe_id=response["subscription_id"],
+            )
+        except:
+            _user_sub_obj = None
+        
+        if _user_sub_obj is None:
+            raise serializers.ValidationError(_('There is an error with your account, please contact us'))
 
         payment_method = billing.get_payment_method(response["payment_method"])
         print(payment_method)
@@ -101,12 +116,12 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         user = validated_data["user"]
-        subscription = validated_data["subscription"]
+        price = validated_data["price"]
         super().update(instance, validated_data) 
 
         response = billing.update_subscription(
             instance.stripe_id,
-            subscription.id,
+            price.id,
             raw=False
         )
         PaymentMethod.objects.get_or_create(

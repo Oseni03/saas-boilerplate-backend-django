@@ -1,5 +1,5 @@
 from rest_framework.permissions import BasePermission
-from djstripe.models import Subscription
+from apps.subscriptions.models import UserSubscription
 
 
 class IsSubscribed(BasePermission):
@@ -11,11 +11,9 @@ class IsSubscribed(BasePermission):
         user = request.user
         if not user.is_authenticated:
             return False
-        
-        user_profile = user.profile
 
-        active_subscription = Subscription.objects.filter(
-            customer=user_profile.customer,
+        active_subscription = UserSubscription.objects.filter(
+            customer=user,
             status="active"
         )
         return active_subscription.exists()

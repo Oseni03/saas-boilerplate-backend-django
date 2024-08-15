@@ -1,5 +1,6 @@
 from hashid_field import rest
 from rest_framework import serializers
+from django.utils.translation import gettext as _
 
 from apps.customers.models import PaymentMethod
 from common import billing
@@ -49,32 +50,52 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
 class UserSubscriptionSerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    price_id = serializers.CharField(write_only=True)
 
     class Meta:
         model = UserSubscription
-        fields = ["id", "user", "subscription"]
+        fields = ["id", "user", "price_id", "subscription"]
+        read_only_fields = ["id", "subscription"]
+    
+    def validate(self, attrs):
+        price_id = attrs["price_id"]
+        try:
+            price = SubscriptionPrice.objects.get(id=price_id)
+        except:
+            raise serializers.ValidationError({'price_id': _('Price with ID not found')})
+        attrs["price"] = price
+        attrs["subscription"] = price.subscription
+        return attrs
     
     def create(self, validated_data):
         user = validated_data["user"]
         subscription = validated_data["subscription"]
+        price = validated_data["price"]
+
 
         response = billing.create_subscription(
-            user.customer.stripe_id,
-            subscription.stripe_id, # Confirm if it returns the subscription ID or object
+            customer_id=user.customer.stripe_id,
+            trial_period_days=price.trial_period_days,
+            price_id=price.stripe_id,
             raw=False
         )
         print(response)
+
         UserSubscription.objects.create(
             user=user, 
             subscription=subscription,
             stripe_id=response["subscription_id"],
         )
+
+        payment_method = billing.get_payment_method(response["payment_method"])
+        print(payment_method)
+
         PaymentMethod.objects.get_or_create(
             user=user,
-            last4=response["payment_method"].last4,
-            exp_month=response["payment_method"].exp_month,
-            exp_year=response["payment_method"].exp_year,
-            stripe_id=response["payment_method"].id,
+            last4=payment_method["last4"],
+            exp_month=payment_method["exp_month"],
+            exp_year=payment_method["exp_year"],
+            stripe_id=payment_method["id"],
         )
         return response
     

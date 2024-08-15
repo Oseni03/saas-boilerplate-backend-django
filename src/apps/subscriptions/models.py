@@ -92,7 +92,7 @@ class SubscriptionPrice(models.Model):
         choices=SubscriptionInterval.choices, 
         default=SubscriptionInterval.MONTHLY
     )
-    trial_period_days = models.IntegerField(null=True, blank=True)
+    trial_period_days = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
     order = models.IntegerField(default=1, help_text="Ordering on Django pricing page")
     featured = models.BooleanField(default=True, help_text="Featured on Django pricing page")

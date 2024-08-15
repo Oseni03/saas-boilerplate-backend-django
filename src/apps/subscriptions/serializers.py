@@ -84,7 +84,9 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             _user_sub_obj.subscription = subscription
             _user_sub_obj.stripe_id = response["stripe_id"]
             _user_sub_obj.save()
-            billing.delete_subscription(_former_sub_id)
+            if _former_sub_id:
+                # billing.delete_subscription(_former_sub_id)
+                billing.cancel_subscription(_former_sub_id, reason="Switch subscription")
         except UserSubscription.DoesNotExist:
             response = billing.create_subscription(
                 customer_id=user.customer.stripe_id,

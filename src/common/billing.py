@@ -107,6 +107,26 @@ def update_subscription(stripe_id: str, new_price_id: str, raw=False):
     }
 
 
+def cancel_subscription(stripe_id: str, reason: str="", feedback: str="other", raw=False):
+    response = stripe.Subscription.cancel(
+        stripe_id,
+        cancellation_details={
+            "comment": reason,
+            "feedback": feedback
+        }
+    )
+    if raw:
+        return response
+    return response.url
+
+
+def delete_subscription(stripe_id: str, raw=False):
+    response = stripe.Subscription.delete(stripe_id)
+    if raw:
+        return response
+    return response.id
+
+
 def get_payment_method(payment_id, raw=False):
     response = stripe.PaymentMethod.retrieve(payment_id)
     if raw:
@@ -117,10 +137,3 @@ def get_payment_method(payment_id, raw=False):
         "exp_month": response.exp_month,
         "exp_year": response.exp_year,
     }
-
-
-def delete_subscription(stripe_id: str, raw=False):
-    response = stripe.Subscription.delete(stripe_id)
-    if raw:
-        return response
-    return response.id

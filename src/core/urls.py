@@ -31,7 +31,7 @@ urlpatterns = [
         "admin/", 
         include(
             [
-                path("finances/", include("apps.finances.urls_admin")), 
+                # path("finances/", include("apps.finances.urls_admin")), 
                 path("", admin.site.urls)
             ]
         ),
@@ -43,7 +43,7 @@ urlpatterns = [
                 path("", include("apps.users.urls")),
                 path("notifications/", include("apps.notifications.urls")),
                 path("feedbacks/", include("apps.feedbacks.urls")),
-                path("finances/", include("apps.finances.urls")),
+                # path("finances/", include("apps.finances.urls")),
                 path("", include("apps.subscriptions.urls")),
             ]
         ),

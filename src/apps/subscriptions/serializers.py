@@ -17,15 +17,15 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 class SubscriptionPriceSerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
-    Subscription_name = serializers.SerializerMethodField()
-    Subscription_subtitle = serializers.SerializerMethodField()
+    subscription_name = serializers.SerializerMethodField()
+    subscription_subtitle = serializers.SerializerMethodField()
     features = serializers.SerializerMethodField()
     interval_display = serializers.SerializerMethodField()
 
     class Meta:
         model = SubscriptionPrice
         fields = [
-            "id", "subscription_name", "Subscription_subtitle", 
+            "id", "subscription_name", "subscription_subtitle", 
             "currency", "interval", "order", "features", 
             "trial_period_days", "amount", "interval_display"
         ]
@@ -43,7 +43,7 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
     def get_interval_display(self, obj: SubscriptionPrice):
         return obj.get_interval_display()
     
-    def get_Subscription_subtitle(self, obj: SubscriptionPrice):
+    def get_subscription_subtitle(self, obj: SubscriptionPrice):
         return obj.subscription.subtitle
 
 

@@ -73,7 +73,7 @@ LOCAL_APPS = [
     "apps.users",
     "apps.notifications",
     "apps.feedbacks",
-    "apps.finances",
+    # "apps.finances",
     "apps.subscriptions",
     "apps.customers",
 ]
@@ -266,7 +266,7 @@ LOCALE_PATHS = []
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.utils.custom_exception_handler",
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "apps.users.authentication.JSONWebTokenCookieAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",

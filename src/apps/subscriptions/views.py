@@ -10,6 +10,7 @@ from . import serializers, models
 class PricingView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = serializers.SubscriptionPriceSerializer
+    queryset = models.SubscriptionPrice.objects.filter(active=True)
 
 
 class CreateUserSubscriptionView(generics.CreateAPIView):

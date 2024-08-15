@@ -151,12 +151,13 @@ class UserSubscription(models.Model):
         PAST_DUE = "past_due", _("Past Due")
         CANCELED = "canceled", _("canceled")
         UNPAID = "unpaid", _("Unpaid")
+        PAUSED = "paused", _("Paused")
 
     id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
-    status = models.CharField(max_length=30, choices=StatusChoices.choices)
+    status = models.CharField(max_length=30, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
 
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
     client_secret = models.CharField(max_length=120, null=True, blank=True)

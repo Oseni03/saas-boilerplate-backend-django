@@ -132,7 +132,7 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             exp_year=payment_method["exp_year"],
             stripe_id=payment_method["id"],
         )
-        return response
+        return _user_sub_obj
     
     def update(self, instance, validated_data):
         user = validated_data["user"]
@@ -159,7 +159,7 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             exp_year=payment_method["exp_year"],
             stripe_id=payment_method["id"],
         )
-        return response
+        return instance
 
 
 class PaymentMethodSerializer(serializers.ModelSerializer):

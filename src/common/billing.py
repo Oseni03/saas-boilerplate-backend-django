@@ -80,18 +80,18 @@ def create_subscription(customer_id: str, price_id: str, trial_period_days: int=
     if raw:
         return subscription
     response = {
-        "subscription_id": subscription.id, 
+        "stripe_id": subscription.id, 
         "client_secret": subscription.latest_invoice.payment_intent.client_secret,
         "payment_method": subscription.latest_invoice.payment_intent.payment_method,
     }
     return response
 
 
-def update_subscription(subscription_id: str, new_price_id: str, raw=False):
-    subscription = stripe.Subscription.retrieve(subscription_id)
+def update_subscription(stripe_id: str, new_price_id: str, raw=False):
+    subscription = stripe.Subscription.retrieve(stripe_id)
 
     response = stripe.Subscription.modify(
-        subscription_id,
+        stripe_id,
         cancel_at_period_end=False,
         items=[{
             "id": subscription["items"]["data"][0].id,
@@ -101,7 +101,7 @@ def update_subscription(subscription_id: str, new_price_id: str, raw=False):
     if raw:
         return response
     return {
-        "subscription_id": response.id, 
+        "stripe_id": response.id, 
         "client_secret": response.latest_invoice.payment_intent.client_secret,
         "payment_method": response.latest_invoice.payment_intent.payment_method,
     }
@@ -119,8 +119,8 @@ def get_payment_method(payment_id, raw=False):
     }
 
 
-def delete_subscription(subscription_id: str, raw=False):
-    response = stripe.Subscription.delete(subscription_id)
+def delete_subscription(stripe_id: str, raw=False):
+    response = stripe.Subscription.delete(stripe_id)
     if raw:
         return response
     return response.id

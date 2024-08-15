@@ -74,14 +74,17 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
 
         try:
             _user_sub_obj = UserSubscription.objects.get(user)
-            _user_sub_obj.subscription = subscription
-            _user_sub_obj.save()
+            _former_sub_id = _user_sub_obj.stripe_id
 
             response = billing.update_subscription(
                 _user_sub_obj.stripe_id,
                 price.id,
                 raw=False
             )
+            _user_sub_obj.subscription = subscription
+            _user_sub_obj.stripe_id = response["stripe_id"]
+            _user_sub_obj.save()
+            billing.delete_subscription(_former_sub_id)
         except UserSubscription.DoesNotExist:
             response = billing.create_subscription(
                 customer_id=user.customer.stripe_id,
@@ -94,7 +97,7 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             _user_sub_obj = UserSubscription.objects.create(
                 user=user, 
                 subscription=subscription,
-                stripe_id=response["subscription_id"],
+                stripe_id=response["stripe_id"],
             )
         except:
             _user_sub_obj = None
@@ -117,19 +120,23 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user = validated_data["user"]
         price = validated_data["price"]
-        super().update(instance, validated_data) 
 
         response = billing.update_subscription(
             instance.stripe_id,
             price.id,
             raw=False
         )
+        validated_data["stripe_id"] = response["stripe_id"]
+        super().update(instance, validated_data) 
+        payment_method = billing.get_payment_method(response["payment_method"])
+        print(payment_method)
+
         PaymentMethod.objects.get_or_create(
             user=user,
-            last4=response["payment_method"].last4,
-            exp_month=response["payment_method"].exp_month,
-            exp_year=response["payment_method"].exp_year,
-            stripe_id=response["payment_method"].id,
+            last4=payment_method["last4"],
+            exp_month=payment_method["exp_month"],
+            exp_year=payment_method["exp_year"],
+            stripe_id=payment_method["id"],
         )
         return response
 

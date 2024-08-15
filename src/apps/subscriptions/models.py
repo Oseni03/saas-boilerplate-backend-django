@@ -139,6 +139,9 @@ class SubscriptionPrice(models.Model):
 
 
 class UserSubscription(models.Model):
+    """ 
+    User Subscription = Stripe Subscription
+    """
     id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)

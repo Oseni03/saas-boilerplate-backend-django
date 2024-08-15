@@ -10,6 +10,7 @@ pricing_urlpatterns = [
 subscriptions_urlpatterns = [
     path("create/", views.CreateUserSubscriptionView.as_view()),
     path("update/", views.UpdateUserSubscriptionView.as_view()),
+    path("payment-methods/", views.ListPaymentMethodView.as_view()),
     path("", views.RetrieveUserSubscriptionView.as_view()),
 ]
 

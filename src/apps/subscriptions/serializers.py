@@ -1,6 +1,7 @@
 from hashid_field import rest
 from rest_framework import serializers
 
+from apps.customers.models import PaymentMethod
 from common import billing
 from .models import SubscriptionPrice, Subscription, UserSubscription
 
@@ -62,17 +63,44 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             subscription.stripe_id, # Confirm if it returns the subscription ID or object
             raw=False
         )
+        print(response)
         UserSubscription.objects.create(
             user=user, 
             subscription=subscription,
             stripe_id=response["subscription_id"],
         )
+        PaymentMethod.objects.get_or_create(
+            user=user,
+            last4=response["payment_method"].last4,
+            exp_month=response["payment_method"].exp_month,
+            exp_year=response["payment_method"].exp_year,
+            stripe_id=response["payment_method"].id,
+        )
         return response
     
     def update(self, instance, validated_data):
-        billing.update_subscription(
+        user = validated_data["user"]
+        subscription = validated_data["subscription"]
+        super().update(instance, validated_data) 
+
+        response = billing.update_subscription(
             instance.stripe_id,
-            validated_data["subscription"].id,
+            subscription.id,
             raw=False
         )
-        return super().update(instance, validated_data)
+        PaymentMethod.objects.get_or_create(
+            user=user,
+            last4=response["payment_method"].last4,
+            exp_month=response["payment_method"].exp_month,
+            exp_year=response["payment_method"].exp_year,
+            stripe_id=response["payment_method"].id,
+        )
+        return response
+
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    id = rest.HashidSerializerCharField(read_only=True)
+
+    class Meta:
+        model = PaymentMethod
+        fields = ["id", "last4", "exp_month", "exp_year", "updated"]

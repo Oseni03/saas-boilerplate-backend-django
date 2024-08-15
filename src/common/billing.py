@@ -67,6 +67,7 @@ def create_subscription(customer_id: str, price_id: str, raw=False):
     response = {
         "subscription_id": subscription.id, 
         "client_secret": subscription.latest_invoice.payment_intent.client_secret,
+        "payment_method": subscription.latest_invoice.payment_intent.payment_method,
     }
     if raw:
         return subscription
@@ -86,7 +87,11 @@ def update_subscription(subscription_id: str, new_price_id: str, raw=False):
     )
     if raw:
         return response
-    return response.id
+    return {
+        "subscription_id": response.id, 
+        "client_secret": response.latest_invoice.payment_intent.client_secret,
+        "payment_method": response.latest_invoice.payment_intent.payment_method,
+    }
 
 
 def delete_subscription(subscription_id: str, raw=False):

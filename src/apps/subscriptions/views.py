@@ -37,3 +37,8 @@ class CancelUserSubscriptionView(generics.DestroyAPIView):
 
     def get_object(self):
         return get_object_or_404(models.UserSubscription, user=self.request.user)
+
+
+class ListPaymentMethodView(generics.ListAPIView):
+    serializer_class = serializers.PaymentMethodSerializer
+    permission_classes = [permissions.IsAuthenticated]

@@ -51,6 +51,7 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     price_id = serializers.CharField(write_only=True)
+    subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = UserSubscription
@@ -63,6 +64,9 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             "id", "subscription", "status", "client_secret", 
             "current_period_start", "current_period_end"
         ]
+    
+    def get_subscription(self, obj):
+        return obj.subscription.name
     
     def validate(self, attrs):
         price_id = attrs["price_id"]
@@ -154,6 +158,30 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         #     exp_year=payment_method["exp_year"],
         #     stripe_id=payment_method["id"],
         # )
+        return instance
+
+
+class CancelActiveUserSubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserSubscription
+        fields = ()
+    
+    def update(self, instance: UserSubscription, validated_data):
+        if instance.stripe_id and instance.is_active_status:
+            response = billing.cancel_subscription(
+                instance.stripe_id, 
+                cancel_at_period_end=True,
+                reason="User cancel subscription",
+            )
+        else:
+            response = billing.cancel_subscription(
+                instance.stripe_id, 
+                reason="User cancel subscription",
+            )
+        for k, v in response.items():
+            setattr(instance, k, v)
+        instance.save()
         return instance
 
 

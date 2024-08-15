@@ -35,7 +35,7 @@ class UpdateUserSubscriptionView(generics.UpdateAPIView):
 
 
 class CancelUserSubscriptionView(generics.DestroyAPIView):
-    serializer_class = serializers.UserSubscriptionSerializer
+    serializer_class = serializers.CancelActiveUserSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated, IsSubscribed]
 
     def get_object(self):

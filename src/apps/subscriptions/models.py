@@ -139,20 +139,21 @@ class SubscriptionPrice(models.Model):
             qs.update(featured=False)
 
 
+class StatusChoices(models.TextChoices):
+    INCOMPLETE = "incomplete", _("Incomplete")
+    INCOMPLETE_EXPIRED = "incomplete_expired", _("Incomplete Expired")
+    TRIALING = "trialing", _("Trialing")
+    ACTIVE = "active", _("Active")
+    PAST_DUE = "past_due", _("Past Due")
+    CANCELED = "canceled", _("canceled")
+    UNPAID = "unpaid", _("Unpaid")
+    PAUSED = "paused", _("Paused")
+
+
 class UserSubscription(models.Model):
     """ 
     User Subscription = Stripe Subscription
     """
-    class StatusChoices(models.TextChoices):
-        INCOMPLETE = "incomplete", _("Incomplete")
-        INCOMPLETE_EXPIRED = "incomplete_expired", _("Incomplete Expired")
-        TRIALING = "trialing", _("Trialing")
-        ACTIVE = "active", _("Active")
-        PAST_DUE = "past_due", _("Past Due")
-        CANCELED = "canceled", _("canceled")
-        UNPAID = "unpaid", _("Unpaid")
-        PAUSED = "paused", _("Paused")
-
     id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
@@ -164,11 +165,16 @@ class UserSubscription(models.Model):
 
     current_period_start = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
     current_period_end = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+    cancel_at_period_end = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"
+    
+    @property
+    def is_active_status(self):
+        return self.status in [StatusChoices.ACTIVE, StatusChoices.TRIALING]
     
     @property
     def billing_cycle_anchor(self):
@@ -183,7 +189,7 @@ class UserSubscription(models.Model):
     
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         if self.stripe_id:
-            billing.delete_subscription(self.stripe_id)
+            billing.cancel_subscription(self.stripe_id, reason="Subscription deleted")
         return super().delete(*args, **kwargs)
 
 

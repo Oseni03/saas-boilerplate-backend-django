@@ -123,17 +123,41 @@ def update_subscription(stripe_id: str, new_price_id: str, raw=False):
     }
 
 
-def cancel_subscription(stripe_id: str, reason: str="", feedback: str="other", raw=False):
-    response = stripe.Subscription.cancel(
-        stripe_id,
-        cancellation_details={
-            "comment": reason,
-            "feedback": feedback
-        }
-    )
+def cancel_subscription(
+        stripe_id: str, reason: str="", 
+        cancel_at_period_end: bool=False, 
+        feedback: str="other", raw=False
+    ):
+    if cancel_at_period_end:
+        response = stripe.Subscription.cancel(
+            stripe_id,
+            cancel_at_period_end=cancel_at_period_end,
+            cancellation_details={
+                "comment": reason,
+                "feedback": feedback
+            }
+        )
+    else:
+        response = stripe.Subscription.cancel(
+            stripe_id,
+            cancellation_details={
+                "comment": reason,
+                "feedback": feedback
+            }
+        )
     if raw:
         return response
-    return response.url
+    
+    current_period_start = utils.timestamp_as_datetime(response.current_period_start)
+    current_period_end = utils.timestamp_as_datetime(response.current_period_end)
+
+    return {
+        "stripe_id": response.id, 
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end, 
+        "status": response.status,
+        "cancel_at_period_end": response.cancel_at_period_end,
+    }
 
 
 def delete_subscription(stripe_id: str, raw=False):

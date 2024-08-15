@@ -54,8 +54,15 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserSubscription
-        fields = ["id", "user", "price_id", "subscription"]
-        read_only_fields = ["id", "subscription"]
+        fields = [
+            "id", "user", "price_id", "subscription", 
+            "status", "client_secret", "current_period_start", 
+            "current_period_end",
+        ]
+        read_only_fields = [
+            "id", "subscription", "status", "client_secret", 
+            "current_period_start", "current_period_end"
+        ]
     
     def validate(self, attrs):
         price_id = attrs["price_id"]
@@ -83,8 +90,12 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             )
             _user_sub_obj.subscription = subscription
             _user_sub_obj.stripe_id = response["stripe_id"]
+            _user_sub_obj.client_secret = response["client_secret"]
+            _user_sub_obj.current_period_start = response["current_period_start"]
+            _user_sub_obj.current_period_end = response["current_period_end"]
+            _user_sub_obj.status = response["status"]
             _user_sub_obj.save()
-            if _former_sub_id:
+            if _former_sub_id and _former_sub_id!=response["stripe_id"]:
                 # billing.delete_subscription(_former_sub_id)
                 billing.cancel_subscription(_former_sub_id, reason="Switch subscription")
         except UserSubscription.DoesNotExist:
@@ -100,6 +111,10 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
                 user=user, 
                 subscription=subscription,
                 stripe_id=response["stripe_id"],
+                client_secret=response["client_secret"],
+                current_period_start=response["current_period_start"],
+                current_period_end=response["current_period_end"],
+                status=response["status"],
             )
         except:
             _user_sub_obj = None
@@ -128,8 +143,12 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             price.id,
             raw=False
         )
-        validated_data["stripe_id"] = response["stripe_id"]
-        super().update(instance, validated_data) 
+        instance.subscription = validated_data["subscription"]
+        instance.stripe_id = response["stripe_id"]
+        instance.client_secret = response["client_secret"]
+        instance.current_period_start = response["current_period_start"]
+        instance.current_period_end = response["current_period_end"]
+        instance.save()
         payment_method = billing.get_payment_method(response["payment_method"])
         print(payment_method)
 

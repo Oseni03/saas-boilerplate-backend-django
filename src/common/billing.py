@@ -1,6 +1,8 @@
 import stripe
 from django.conf import settings
 
+from apps.subscriptions import utils
+
 DJANGO_DEBUG = settings.DEBUG
 STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
 
@@ -79,10 +81,17 @@ def create_subscription(customer_id: str, price_id: str, trial_period_days: int=
         )
     if raw:
         return subscription
+    
+    current_period_start = utils.timestamp_as_datetime(subscription.current_period_start)
+    current_period_end = utils.timestamp_as_datetime(subscription.current_period_end)
+
     response = {
         "stripe_id": subscription.id, 
         "client_secret": subscription.latest_invoice.payment_intent.client_secret,
         "payment_method": subscription.latest_invoice.payment_intent.payment_method,
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end,
+        "status": subscription.status,
     }
     return response
 
@@ -100,10 +109,17 @@ def update_subscription(stripe_id: str, new_price_id: str, raw=False):
     )
     if raw:
         return response
+    
+    current_period_start = utils.timestamp_as_datetime(subscription.current_period_start)
+    current_period_end = utils.timestamp_as_datetime(subscription.current_period_end)
+
     return {
         "stripe_id": response.id, 
         "client_secret": response.latest_invoice.payment_intent.client_secret,
         "payment_method": response.latest_invoice.payment_intent.payment_method,
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end, 
+        "status": subscription.status,
     }
 
 

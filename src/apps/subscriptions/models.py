@@ -1,6 +1,7 @@
 import hashid_field
 from django.db import models
 from django.conf import settings
+from django.utils.translation import gettext as _
 from django.db.models.signals import post_save, post_delete
 from django.contrib.auth.models import Group, Permission
 
@@ -142,18 +143,42 @@ class UserSubscription(models.Model):
     """ 
     User Subscription = Stripe Subscription
     """
+    class StatusChoices(models.TextChoices):
+        INCOMPLETE = "incomplete", _("Incomplete")
+        INCOMPLETE_EXPIRED = "incomplete_expired", _("Incomplete Expired")
+        TRIALING = "trialing", _("Trialing")
+        ACTIVE = "active", _("Active")
+        PAST_DUE = "past_due", _("Past Due")
+        CANCELED = "canceled", _("canceled")
+        UNPAID = "unpaid", _("Unpaid")
+
     id: str = hashid_field.HashidAutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
+    status = models.CharField(max_length=30, choices=StatusChoices.choices)
 
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
+    client_secret = models.CharField(max_length=120, null=True, blank=True)
 
+    current_period_start = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+    current_period_end = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"
+    
+    @property
+    def billing_cycle_anchor(self):
+        """ 
+        Optional delay to start subscription in Stripe
+
+        https://docs.stripe.com/payments/checkout/billing-cycle
+        """
+        if not self.current_period_end:
+            return None
+        return int(self.current_period_end.timestamp())
     
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         if self.stripe_id:

@@ -6,53 +6,24 @@ from celery import shared_task, states
 from celery.exceptions import Ignore
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 
-@shared_task(bind=True)
-def send_email(self, to: str | list[str], email_type: str, email_data: dict):
-    render_script = '''
-    const { renderEmail } = require('./email');
-    console.log(JSON.stringify(renderEmail('%s', %s)));
-    process.exit(0);
-    ''' % (
-        email_type,
-        json.dumps(email_data),
-    )
+# @shared_task(bind=True)
+def send_email(to: str | list[str], email_type: str, email_data: dict):
+    print("AT Task")
+    print(email_type)
+    print(email_data)
 
-    print(render_script)
+    if email_type == "ACCOUNT_ACTIVATION":
+        rendered_email = {
+            "html": render_to_string(
+                "users/emails/account_activation.html", 
+                context=email_data
+            ),
+            "subject": "Account Activation"
+        }
 
-    try:
-        node_process = subprocess.run(
-            ["node"],
-            shell=True,
-            input=bytes(render_script, 'utf-8'),
-            capture_output=True,
-            check=True,
-            cwd='/app/scripts/runtime',
-            # Environmental variables are mapped manually to avoid secret values from being exposed to email renderer
-            # script that is usually maintained by non-backend developers
-            env={
-                'DEBUG': str(settings.DEBUG),
-                'VITE_EMAIL_ASSETS_URL': os.environ.get('VITE_EMAIL_ASSETS_URL', ''),
-                'VITE_WEB_APP_URL': os.environ.get('VITE_WEB_APP_URL', ''),
-            },
-        )
-    except subprocess.CalledProcessError as e:
-        self.update_state(
-            state=states.FAILURE,
-            meta={
-                'return_code': e.returncode,
-                'cmd': e.cmd,
-                'output': e.output,
-                'stderr': e.stderr,
-            },
-        )
-        raise Ignore()
-
-    if isinstance(to, str):
-        to = (to,)
-
-    rendered_email = json.loads(node_process.stdout)
     print(rendered_email)
     email = EmailMessage(
         rendered_email['subject'],

@@ -40,5 +40,5 @@ class Email(BaseEmail):
         print(send_data)
 
         # TODO: Handle due_date
-        send_email.apply_async((self.to, self.name, send_data))
+        send_email((self.to,), self.name, send_data)
 

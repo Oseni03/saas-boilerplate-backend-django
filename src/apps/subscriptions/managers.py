@@ -2,8 +2,6 @@ import datetime
 from django.db import models
 from django.utils import timezone
 
-from .models import SubscriptionStatus
-
 
 class UserSubscriptionQuerySet(models.QuerySet):
     def by_range(self, days_start: int=7, days_end: int=120):
@@ -38,6 +36,8 @@ class UserSubscriptionQuerySet(models.QuerySet):
         )
 
     def by_active(self):
+        from .models import SubscriptionStatus
+        
         active_qs_lookup = (
             models.Q(status=SubscriptionStatus.ACTIVE) |
             models.Q(status=SubscriptionStatus.TRIALING)

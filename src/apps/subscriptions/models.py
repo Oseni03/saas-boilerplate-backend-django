@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group, Permission
 from common import billing
 
 from .constants import CommomPermissions
+from .managers import UserSubscriptionManger
 
 User = settings.AUTH_USER_MODEL
 
@@ -168,6 +169,8 @@ class UserSubscription(models.Model):
     cancel_at_period_end = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    objects = UserSubscriptionManger()
 
     def __str__(self) -> str:
         return f"{self.user}: {self.subscription}"

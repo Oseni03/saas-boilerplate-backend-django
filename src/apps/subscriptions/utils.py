@@ -1,23 +1,16 @@
-from django.db.models import Q
-from apps.subscriptions.models import Subscription, UserSubscription, SubscriptionStatus
+from apps.subscriptions.models import Subscription, UserSubscription
 from apps.customers.models import Customer
 from django.contrib.auth.models import Group, Permission
 from common import billing
 from . import constants
 
 
-def refresh_users_subscriptions(user_ids=None):
-    active_qs_lookup = (
-        Q(status=SubscriptionStatus.ACTIVE) |
-        Q(status=SubscriptionStatus.TRIALING)
-    )
-    qs = UserSubscription.objects.filter(active_qs_lookup)
-    if isinstance(user_ids, list):
-        qs = qs.filter(user_id__in=user_ids)
-    elif isinstance(user_ids, str):
-        qs = qs.filter(user_id__in=[user_ids])
-    elif isinstance(user_ids, int):
-        qs = qs.filter(user_id__in=[user_ids])
+def refresh_users_subscriptions(user_ids=None, active_only=True):
+    qs = UserSubscription.objects.all().by_active()
+    if active_only:
+        qs = qs.by_active()
+    if user_ids is not None:
+        qs = qs.by_user_ids(user_ids)
     
     complete_count = 0
     qs_count = qs.count()

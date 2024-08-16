@@ -1,13 +1,34 @@
-from datetime import datetime
-from apps.subscriptions.models import Subscription, UserSubscription
+from django.db.models import Q
+from apps.subscriptions.models import Subscription, UserSubscription, SubscriptionStatus
 from apps.customers.models import Customer
 from django.contrib.auth.models import Group, Permission
 from common import billing
 from . import constants
 
 
-def timestamp_as_datetime(timestamp):
-    return datetime.fromtimestamp(timestamp, tz=datetime.UTC)
+def refresh_users_subscriptions(user_ids=None):
+    active_qs_lookup = (
+        Q(status=SubscriptionStatus.ACTIVE) |
+        Q(status=SubscriptionStatus.TRIALING)
+    )
+    qs = UserSubscription.objects.filter(active_qs_lookup)
+    if isinstance(user_ids, list):
+        qs = qs.filter(user_id__in=user_ids)
+    elif isinstance(user_ids, str):
+        qs = qs.filter(user_id__in=[user_ids])
+    elif isinstance(user_ids, int):
+        qs = qs.filter(user_id__in=[user_ids])
+    
+    complete_count = 0
+    qs_count = qs.count()
+    for obj in qs:
+        if obj.stripe_id:
+            sub_data = billing.get_subscription(obj.stripe_id, raw=False)
+            for k, v in sub_data.items():
+                setattr(obj, k, v)
+            obj.save()
+            complete_count += 1
+    return complete_count == qs_count
 
 
 def clear_dangling_subs() -> str | None:

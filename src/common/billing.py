@@ -1,7 +1,7 @@
 import stripe
 from django.conf import settings
 
-from apps.subscriptions import utils
+from common import date_utils
 
 DJANGO_DEBUG = settings.DEBUG
 STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
@@ -82,8 +82,8 @@ def create_subscription(customer_id: str, price_id: str, trial_period_days: int=
     if raw:
         return subscription
     
-    current_period_start = utils.timestamp_as_datetime(subscription.current_period_start)
-    current_period_end = utils.timestamp_as_datetime(subscription.current_period_end)
+    current_period_start = date_utils.timestamp_as_datetime(subscription.current_period_start)
+    current_period_end = date_utils.timestamp_as_datetime(subscription.current_period_end)
 
     response = {
         "stripe_id": subscription.id, 
@@ -110,8 +110,8 @@ def update_subscription(stripe_id: str, new_price_id: str, raw=False):
     if raw:
         return response
     
-    current_period_start = utils.timestamp_as_datetime(subscription.current_period_start)
-    current_period_end = utils.timestamp_as_datetime(subscription.current_period_end)
+    current_period_start = date_utils.timestamp_as_datetime(subscription.current_period_start)
+    current_period_end = date_utils.timestamp_as_datetime(subscription.current_period_end)
 
     return {
         "stripe_id": response.id, 
@@ -148,8 +148,8 @@ def cancel_subscription(
     if raw:
         return response
     
-    current_period_start = utils.timestamp_as_datetime(response.current_period_start)
-    current_period_end = utils.timestamp_as_datetime(response.current_period_end)
+    current_period_start = date_utils.timestamp_as_datetime(response.current_period_start)
+    current_period_end = date_utils.timestamp_as_datetime(response.current_period_end)
 
     return {
         "stripe_id": response.id, 
@@ -187,3 +187,25 @@ def get_customer_active_subscriptions(customer_stripe_id):
     )
     print(response)
     return response
+
+
+def serialize_subscription_data(subscription_response):
+    status = subscription_response.status
+    current_period_start = date_utils.timestamp_as_datetime(subscription_response.current_period_start)
+    current_period_end = date_utils.timestamp_as_datetime(subscription_response.current_period_end)
+    cancel_at_period_end = subscription_response.cancel_at_period_end
+    return {
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end,
+        "status": status,
+        "cancel_at_period_end": cancel_at_period_end,
+    }
+
+
+def get_subscription(stripe_id, raw=True):
+    response =  stripe.Subscription.retrieve(
+            stripe_id
+        )
+    if raw:
+        return response
+    return serialize_subscription_data(response)

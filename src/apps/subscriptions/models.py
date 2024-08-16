@@ -139,7 +139,7 @@ class SubscriptionPrice(models.Model):
             qs.update(featured=False)
 
 
-class StatusChoices(models.TextChoices):
+class SubscriptionStatus(models.TextChoices):
     INCOMPLETE = "incomplete", _("Incomplete")
     INCOMPLETE_EXPIRED = "incomplete_expired", _("Incomplete Expired")
     TRIALING = "trialing", _("Trialing")
@@ -158,7 +158,7 @@ class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
-    status = models.CharField(max_length=30, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
+    status = models.CharField(max_length=30, choices=SubscriptionStatus.choices, default=SubscriptionStatus.ACTIVE)
 
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
     client_secret = models.CharField(max_length=120, null=True, blank=True)
@@ -174,7 +174,7 @@ class UserSubscription(models.Model):
     
     @property
     def is_active_status(self):
-        return self.status in [StatusChoices.ACTIVE, StatusChoices.TRIALING]
+        return self.status in [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING]
     
     @property
     def billing_cycle_anchor(self):

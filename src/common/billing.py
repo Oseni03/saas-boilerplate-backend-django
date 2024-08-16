@@ -129,7 +129,7 @@ def cancel_subscription(
         feedback: str="other", raw=False
     ):
     if cancel_at_period_end:
-        response = stripe.Subscription.cancel(
+        response = stripe.Subscription.modify(
             stripe_id,
             cancel_at_period_end=cancel_at_period_end,
             cancellation_details={
@@ -177,3 +177,13 @@ def get_payment_method(payment_id, raw=False):
         "exp_month": response.exp_month,
         "exp_year": response.exp_year,
     }
+    return resp
+
+
+def get_customer_active_subscriptions(customer_stripe_id):
+    response = stripe.Subscription.list(
+        customer=customer_stripe_id,
+        status="active"
+    )
+    print(response)
+    return response

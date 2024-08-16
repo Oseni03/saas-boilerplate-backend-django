@@ -83,10 +83,6 @@ class UserSignupSerializer(serializers.ModelSerializer):
         if jwt_api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, user)
 
-        notifications.AccountActivationEmail(
-            user=user, data={'user_id': user.id.hashid, 'token': tokens.account_activation_token.make_token(user)}
-        ).send()
-
         return {'id': user.id, 'email': user.email, 'access': str(refresh.access_token), 'refresh': str(refresh)}
 
 

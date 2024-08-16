@@ -18,7 +18,7 @@ class NotificationTypeEmail(NotificationEmail):
     """Email for specific notification type
     """
     
-    name = 'Notification_Type' # Notification Type name
+    name = 'Notification' # Notification Type name
     serializer_class = email_serializers.NotificationType # Serializer for the notification type
 
 

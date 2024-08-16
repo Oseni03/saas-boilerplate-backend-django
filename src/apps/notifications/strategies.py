@@ -2,7 +2,7 @@ import logging
 from django.conf import settings
 
 from common import emails
-from . import email_serializers, tasks, models
+from . import email_serializers, models, utils
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class SMSNotificationStrategy(BaseNotificationStrategy):
     
     @staticmethod
     def send_notification(user: User, type: str, message: str, data: dict = None, issuer: str = None):
-        return tasks.send_sms_notification.apply_async((user.profile.phone_number, message))
+        return utils.send_sms_notification(user.profile.phone_number, message)
 
 
 class PushNotificationStrategy(BaseNotificationStrategy):
@@ -76,4 +76,4 @@ class PushNotificationStrategy(BaseNotificationStrategy):
     
     @staticmethod
     def send_notification(user: User, type: str, message: str, data: dict = None, issuer: str = None):
-        return tasks.send_push_notification.apply_async((user.profile.device_token, type, message))
+        return utils.send_push_notification(user.profile.device_token, type, message)

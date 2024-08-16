@@ -9,10 +9,6 @@ scripts:
     - cd src && python manage.py shell
   create_superuser:
     - cd src && python manage.py createsuperuser --email=admin@gmail.com
-  celery:
-    - cd src && celery -A core worker -l INFO
-  celery_beat:
-    - cd src && celery -A core beat
   init_permissions:
     - cd src && python manage.py init_permissions
   sync_subs:

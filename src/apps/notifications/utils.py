@@ -1,12 +1,10 @@
-from celery import shared_task
 from django.conf import settings
 
 import requests
 from twilio.rest import Client
 
 
-@shared_task(bind=True)
-def send_sms_notification(self, phone_number, message):
+def send_sms_notification(phone_number, message):
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     client.message.create(
         body=message,
@@ -15,8 +13,7 @@ def send_sms_notification(self, phone_number, message):
     )
 
 
-@shared_task(bind=True)
-def send_push_notification(self, device_token, type, message):
+def send_push_notification(device_token, type, message):
     # Example for Firebase Cloud Messaging (FCM)
     headers = {
         "Authorization": f"key={settings.FCM_SERVER_KEY}",

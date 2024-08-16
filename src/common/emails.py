@@ -1,4 +1,4 @@
-from apps.users.tasks import send_email
+from apps.users.utils import send_email
 
 
 class BaseEmail:

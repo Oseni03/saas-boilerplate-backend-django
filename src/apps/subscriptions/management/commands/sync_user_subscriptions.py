@@ -1,29 +1,22 @@
+from sys import stdout
 from typing import Any
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandParser
 
-from apps.subscriptions.models import UserSubscription
-from apps.customers.models import Customer
-
-from common import billing
+from apps.subscriptions import utils
 
 
 class Command(BaseCommand):
     """Can be run once a month"""
 
+    def add_arguments(self, parser: CommandParser) -> None:
+        parser.add_argument("--clear-dangling", action="store_true", default=False)
+
     def handle(self, *args: Any, **options: Any) -> str | None:
-        customers = Customer.objects.filter(stripe_id__isnull=False)
-        for cus_obj in customers:
-            user = cus_obj.user
-            customer_stripe_id = cus_obj.stripe_id
-            subs = billing.get_customer_active_subscriptions(customer_stripe_id)
-            for sub in subs:
-                existing_user_subs = UserSubscription.objects.filter(
-                    stripe_id__iexact=f"{sub.id}".strip()
-                )
-                print(sub.id, existing_user_subs.exists())
-                if existing_user_subs.exists():
-                    billing.cancel_subscription(
-                        sub.id, 
-                        reason="Canceling dangling active subscriptions", 
-                        cancel_at_period_end=True
-                    )
+        # python manage.py sync_user_subs --clear-dangling
+        print(options)
+        clear_dangling = options.get("clear_dangling")
+        if clear_dangling:
+            print("Clearing dangling subs not in use active in stripe")
+            utils.clear_dangling_subs()
+        else:
+            print("Sync active subs")

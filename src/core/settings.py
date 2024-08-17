@@ -368,3 +368,9 @@ FCM_SERVER_KEY = env("FCM_SERVER_KEY", default="")
 
 # USER SUBSCRIPTION SETTINGS
 ALLOW_CUSTOM_GROUP = True
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+CORS_ALLOW_CREDENTIALS = True

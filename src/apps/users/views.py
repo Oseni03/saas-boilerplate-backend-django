@@ -261,7 +261,7 @@ class LogoutView(TokenViewBase):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=False):
             serializer.save()
-            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response = Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
         else:
             response = Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 

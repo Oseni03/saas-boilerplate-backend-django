@@ -32,22 +32,10 @@ class RetrieveUserSubscriptionView(generics.RetrieveAPIView):
         return user_sub_obj
 
 
-class UpdateUserSubscriptionView(generics.UpdateAPIView):
-    serializer_class = serializers.UserSubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSubscribed]
-
-    def get_object(self):
-        return get_object_or_404(models.UserSubscription, user=self.request.user)
-
-
-class CancelUserSubscriptionView(generics.DestroyAPIView):
+class CancelUserSubscriptionView(generics.UpdateAPIView):
     serializer_class = serializers.CancelActiveUserSubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSubscribed]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return get_object_or_404(models.UserSubscription, user=self.request.user)
-
-
-class ListPaymentMethodView(generics.ListAPIView):
-    serializer_class = serializers.PaymentMethodSerializer
-    permission_classes = [permissions.IsAuthenticated]
+        user_sub_obj, _ = models.UserSubscription.objects.get_or_create(user=self.request.user)
+        return user_sub_obj

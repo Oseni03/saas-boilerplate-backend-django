@@ -224,17 +224,7 @@ def cancel_subscription(
         )
     if raw:
         return response
-    
-    current_period_start = date_utils.timestamp_as_datetime(response.current_period_start)
-    current_period_end = date_utils.timestamp_as_datetime(response.current_period_end)
-
-    return {
-        "stripe_id": response.id, 
-        "current_period_start": current_period_start,
-        "current_period_end": current_period_end, 
-        "status": response.status,
-        "cancel_at_period_end": response.cancel_at_period_end,
-    }
+    return serialize_subscription_data(response)
 
 
 def delete_subscription(stripe_id: str, raw=False):

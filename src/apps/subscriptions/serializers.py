@@ -4,7 +4,6 @@ from django.utils.translation import gettext as _
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from apps.customers.models import PaymentMethod
 from common import billing
 from .models import SubscriptionPrice, Subscription, UserSubscription
 
@@ -168,22 +167,9 @@ class CancelActiveUserSubscriptionSerializer(serializers.ModelSerializer):
             response = billing.cancel_subscription(
                 instance.stripe_id, 
                 cancel_at_period_end=True,
-                reason="User cancel subscription",
+                reason="User canceled subscription",
             )
-        else:
-            response = billing.cancel_subscription(
-                instance.stripe_id, 
-                reason="User cancel subscription",
-            )
-        for k, v in response.items():
-            setattr(instance, k, v)
-        instance.save()
+            for k, v in response.items():
+                setattr(instance, k, v)
+            instance.save()
         return instance
-
-
-class PaymentMethodSerializer(serializers.ModelSerializer):
-    id = rest.HashidSerializerCharField(read_only=True)
-
-    class Meta:
-        model = PaymentMethod
-        fields = ["id", "last4", "exp_month", "exp_year", "updated"]

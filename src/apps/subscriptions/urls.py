@@ -18,4 +18,5 @@ subscriptions_urlpatterns = [
 urlpatterns = [
     path("pricing/", include(pricing_urlpatterns)),
     path("subscriptions/", include(subscriptions_urlpatterns)),
+    path("webhook/", views.StripeWebhookView.as_view()),
 ]

@@ -1,8 +1,4 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-
-from common.permissions import IsSubscribed
 
 from . import serializers, models
 
@@ -44,3 +40,8 @@ class CancelUserSubscriptionView(generics.UpdateAPIView):
 class CustomerPortalView(generics.CreateAPIView):
     serializer_class = serializers.CustomerPortalSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class StripeWebhookView(generics.CreateAPIView):
+    serializer_class = serializers.WebhookSerializer
+    permission_classes = [permissions.AllowAny]

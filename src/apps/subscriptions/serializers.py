@@ -189,3 +189,37 @@ class CustomerPortalSerializer(serializers.Serializer):
         )
         validated_data["url"] = url
         return validated_data
+
+
+class WebhookSerializer(serializers.Serializer):
+    status = serializers.CharField(read_only=True)
+
+    def create(self, validated_data):
+        event = billing.get_stripe_webhook_event(self.request)
+        event_type = event["event_type"]
+        data = event["data"]
+
+        if event_type == "checkout.session.completed":
+            """ 
+            payment is successful and the subscription is created.
+            You should provision the subscription and save the customer ID to your database.
+            """
+            print(data)
+        elif event_type == "invoice.paid":
+            """ 
+            Continue to provision the subscription as payments continue to be made.
+            Store the status in your databse and check when a user access your service.
+            This approach helps you avoid hitting rate limits.
+            """
+            print(data)
+        elif event_type == "invoice.payment_failed":
+            """ 
+            The payment failed or the customer does not have a valid payment method.
+            The subscription becomes past_due. Notify your customer and send them to the 
+            customer portal to update their payment information.
+            """
+            print(data)
+        else:
+            print("Unhandled event type {}".format(event_type,))
+        
+        return {"status": "success"}

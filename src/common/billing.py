@@ -1,3 +1,4 @@
+import json
 import stripe
 from django.conf import settings
 
@@ -277,3 +278,29 @@ def create_customer_portal(
     if raw:
         return session
     return session.id
+
+
+def get_stripe_webhook_event(request):
+    print(request.data)
+
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    request_data = json.loads(request.data)
+
+    if webhook_secret:
+        signature = request.headers.get("stripe-signature")
+        try:
+            event = stripe.Webhook.construct_event(
+                payload=request.data,
+                sig_header=signature,
+                secret=webhook_secret
+            )
+            print(event)
+            data = event["data"]
+        except Exception as e:
+            return e
+        
+        event_type = event["type"]
+    else:
+        data = request_data["data"]
+        event_type = request_data["type"]
+    return {"data": data, "event_type": event_type}

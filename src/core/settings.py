@@ -323,12 +323,8 @@ USER_NOTIFICATION_IMPL = "config.notifications.stdout"
 
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="sk_test_<CHANGE_ME>")
 STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE", default=False)
-# Disable stripe checks for keys on django application start
-STRIPE_CHECKS_ENABLED = env.bool("STRIPE_CHECKS_ENABLED", default=True)
-if not STRIPE_CHECKS_ENABLED:
-    SILENCED_SYSTEM_CHECKS.append("djstripe.C001")
-
 STRIPE_ENABLED = env("STRIPE_ENABLED", default=False)
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 
 SUBSCRIPTION_TRIAL_PERIOD_DAYS = env("SUBSCRIPTION_TRIAL_PERIOD_DAYS", default=7)
 

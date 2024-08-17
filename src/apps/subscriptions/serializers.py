@@ -173,3 +173,19 @@ class CancelActiveUserSubscriptionSerializer(serializers.ModelSerializer):
                 setattr(instance, k, v)
             instance.save()
         return instance
+
+
+class CustomerPortalSerializer(serializers.Serializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    url = serializers.CharField(read_only=True)
+
+    def create(self, validated_data):
+        user = validated_data["user"]
+        customer_stripe_id = user.customer.stripe_id
+        url = billing.create_customer_portal(
+            customer_stripe_id, 
+            return_url=settings.CUSTOMER_PORTAL_SESSION_RETURN_URL,
+            raw=False
+        )
+        validated_data["url"] = url
+        return validated_data

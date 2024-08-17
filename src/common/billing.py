@@ -263,3 +263,17 @@ def get_subscription(stripe_id, raw=True):
     if raw:
         return response
     return serialize_subscription_data(response)
+
+
+def create_customer_portal(
+        customer_stripe_id: str, 
+        return_url: str="", 
+        raw: bool=False
+    ):
+    session = stripe.billing_portal.Session.create(
+        customer=customer_stripe_id,
+        return_url=return_url,
+    )
+    if raw:
+        return session
+    return session.id

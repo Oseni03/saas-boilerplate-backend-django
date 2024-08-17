@@ -39,3 +39,8 @@ class CancelUserSubscriptionView(generics.UpdateAPIView):
     def get_object(self):
         user_sub_obj, _ = models.UserSubscription.objects.get_or_create(user=self.request.user)
         return user_sub_obj
+
+
+class CustomerPortalView(generics.CreateAPIView):
+    serializer_class = serializers.CustomerPortalSerializer
+    permission_classes = [permissions.IsAuthenticated]

@@ -11,6 +11,7 @@ subscriptions_urlpatterns = [
     path("create-checkout/", views.CreateCheckoutView.as_view()),
     path("finalize-checkout/", views.FinalizeCheckoutView.as_view()),
     path("cancel/", views.CancelUserSubscriptionView.as_view()),
+    path("create-customer-portal/", views.CustomerPortalView.as_view()),
     path("", views.RetrieveUserSubscriptionView.as_view()),
 ]
 

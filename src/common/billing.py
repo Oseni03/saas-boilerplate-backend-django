@@ -56,6 +56,43 @@ def create_price(
     return response.id # stripe_id
 
 
+def create_checkout_session(
+    customer_id, 
+    success_url="", 
+    cancel_url="", 
+    price_stripe_id="", 
+    trial_period_days=0,
+    raw=True
+):
+    if not success_url.endswith("?session_id={CHECKOUT_SESSION_ID}"):
+        success_url = f"{success_url}" + "?session_id={CHECKOUT_SESSION_ID}"
+    
+    if trial_period_days > 0:
+        response= stripe.checkout.Session.create(
+            customer=customer_id,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            line_items=[{"price": price_stripe_id, "quantity": 1}],
+            subscription_data={
+                "trial_settings": {"end_behavior": {"missing_payment_method": "cancel"}},
+                "trial_period_days": trial_period_days,
+            },
+            payment_method_collection="if_required",
+            mode="subscription",
+        )
+    else:
+        response= stripe.checkout.Session.create(
+            customer=customer_id,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            line_items=[{"price": price_stripe_id, "quantity": 1}],
+            mode="subscription",
+        )
+    if raw:
+        return response
+    return response.url
+
+
 def create_subscription(customer_id: str, price_id: str, trial_period_days: int=0, raw=False):
     if trial_period_days > 0:
         subscription = stripe.Subscription.create(

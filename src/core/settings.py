@@ -374,3 +374,6 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+CHECKOUT_SUCCESS_URL = reverse_lazy("stripe-checkout-end")
+CHECKOUT_CANCEL_URL = reverse_lazy("stripe-checkout-end")

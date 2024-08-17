@@ -13,6 +13,11 @@ class PricingView(generics.ListAPIView):
     queryset = models.SubscriptionPrice.objects.filter(active=True)
 
 
+class CreateCheckoutView(generics.CreateAPIView):
+    serializer_class = serializers.CreateCheckoutSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 class CreateUserSubscriptionView(generics.CreateAPIView):
     serializer_class = serializers.UserSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]

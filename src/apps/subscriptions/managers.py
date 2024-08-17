@@ -59,12 +59,5 @@ class UserSubscriptionManger(models.Manager):
     def get_queryset(self) -> models.QuerySet:
         return UserSubscriptionQuerySet(self.model, using=self._db)
     
-    def by_user_ids(self, user_ids=None):
-        qs = self.get_queryset()
-        if isinstance(user_ids, list):
-            qs = qs.filter(user_id__in=user_ids)
-        elif isinstance(user_ids, str):
-            qs = qs.filter(user_id__in=[user_ids])
-        elif isinstance(user_ids, int):
-            qs = qs.filter(user_id__in=[user_ids])
-        return qs
+    # def by_user_ids(self, user_ids=None):
+    #     return self.get_queryset().by_user_ids(user_ids=user_ids)

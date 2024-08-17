@@ -1,6 +1,7 @@
 from hashid_field import rest
 from rest_framework import serializers
 from django.utils.translation import gettext as _
+from django.conf import settings
 
 from apps.customers.models import PaymentMethod
 from common import billing
@@ -45,6 +46,39 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
     
     def get_subscription_subtitle(self, obj: SubscriptionPrice):
         return obj.subscription.subtitle
+
+
+class CreateCheckoutSerializer(serializers.Serializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    price_id = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        price_id = attrs["price_id"]
+        try:
+            price = SubscriptionPrice.objects.get(id=price_id)
+        except:
+            raise serializers.ValidationError({'price_id': _('Price with ID not found')})
+        attrs["price"] = price
+        return attrs
+    
+    def create(self, validated_data):
+        price = validated_data["price"]
+        customer_stripe_id = validated_data["user"].customer.stripe_id
+        success_url_path = settings.CHECKOUT_SUCCESS_URL
+        cancel_url_path = settings.CHECKOUT_CANCEL_URL
+        success_url = f"{settings.BASE_URL}{success_url_path}"
+        cancel_url= f"{settings.BASE_URL}{cancel_url_path}"
+        price_stripe_id = price.stripe_id
+
+        url = billing.create_checkout_session(
+            customer_stripe_id,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            price_stripe_id=price_stripe_id,
+            trial_period_days=price.trial_period_days,
+            raw=False
+        )
+        return url
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):

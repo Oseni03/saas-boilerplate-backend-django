@@ -19,21 +19,17 @@ class CreateCheckoutView(generics.CreateAPIView):
 
 
 class FinalizeCheckoutView(generics.CreateAPIView):
-    serializer_class = serializers.FinalizeCheckoutSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class CreateUserSubscriptionView(generics.CreateAPIView):
     serializer_class = serializers.UserSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 class RetrieveUserSubscriptionView(generics.RetrieveAPIView):
     serializer_class = serializers.UserSubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSubscribed]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return get_object_or_404(models.UserSubscription, user=self.request.user)
+        user_sub_obj, _ = models.UserSubscription.objects.get_or_create(user=self.request.user)
+        return user_sub_obj
 
 
 class UpdateUserSubscriptionView(generics.UpdateAPIView):

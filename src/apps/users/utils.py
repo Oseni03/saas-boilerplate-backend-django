@@ -5,7 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 
 
-
 def set_auth_cookie(response, data):
     cookie_max_age = settings.COOKIE_MAX_AGE
     access = data.get(settings.ACCESS_TOKEN_COOKIE)

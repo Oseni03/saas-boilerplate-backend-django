@@ -316,7 +316,7 @@ class VerifyOTPSerializer(serializers.Serializer):
     otp_token = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
-        print(self.context_user)
+        print("User:", self.context_user)
         otp_services.verify_otp(self.context_user, validated_data.get("otp_token", ""))
         return {'otp_verified': True}
 

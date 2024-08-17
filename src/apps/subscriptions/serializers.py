@@ -2,11 +2,13 @@ from hashid_field import rest
 from rest_framework import serializers
 from django.utils.translation import gettext as _
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from apps.customers.models import PaymentMethod
 from common import billing
 from .models import SubscriptionPrice, Subscription, UserSubscription
 
+User = get_user_model()
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
@@ -79,6 +81,80 @@ class CreateCheckoutSerializer(serializers.Serializer):
             raw=False
         )
         return url
+
+
+class FinalizeCheckoutSerializer(serializers.ModelSerializer):
+    """ UserSubscription Serializer"""
+    id = rest.HashidSerializerCharField(read_only=True)
+    session_id = serializers.CharField(write_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    subscription = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserSubscription
+        fields = [
+            "id", "user", "session_id", "subscription", 
+            "status", "current_period_start", 
+            "current_period_end",
+        ]
+        read_only_fields = [
+            "id", "user", "subscription", "status", 
+            "current_period_start", "current_period_end"
+        ]
+    
+    def get_subscription(self, obj):
+        return obj.subscription.name
+
+    def create(self, validated_data):
+        user = validated_data('user')
+        session_id = validated_data('session_id')
+        checkout_data = billing.get_checkout_customer_plan(session_id)
+        plan_id = checkout_data.pop('plan_id')
+        customer_id = checkout_data.pop('customer_id')
+        sub_stripe_id = checkout_data.pop("sub_stripe_id")
+        subscription_data = {**checkout_data}
+        try:
+            sub_obj = Subscription.objects.get(subscriptionprice__stripe_id=plan_id)
+        except:
+            sub_obj = None
+        if user.customer.stripe_id == customer_id:
+            user_obj = user
+        else:
+            user_obj = None
+
+        _user_sub_exists = False
+        updated_sub_options = {
+            "subscription": sub_obj,
+            "stripe_id": sub_stripe_id,
+            "user_cancelled": False,
+            **subscription_data,
+        }
+        try:
+            _user_sub_obj = UserSubscription.objects.get(user=user_obj)
+            _user_sub_exists = True
+        except UserSubscription.DoesNotExist:
+            _user_sub_obj = UserSubscription.objects.create(
+                user=user_obj, 
+                **updated_sub_options
+            )
+        except:
+            _user_sub_obj = None
+        if None in [sub_obj, user_obj, _user_sub_obj]:
+            return serializers.ValidationError(_("There was an error with your account, please contact us."))
+        if _user_sub_exists:
+            # cancel old sub
+            old_stripe_id = _user_sub_obj.stripe_id
+            same_stripe_id = sub_stripe_id == old_stripe_id
+            if old_stripe_id is not None and not same_stripe_id:
+                try:
+                    billing.cancel_subscription(old_stripe_id, reason="Auto ended, new membership", feedback="other")
+                except:
+                    pass
+            # assign new sub
+            for k, v in updated_sub_options.items():
+                setattr(_user_sub_obj, k, v)
+            _user_sub_obj.save()
+        return _user_sub_obj
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):

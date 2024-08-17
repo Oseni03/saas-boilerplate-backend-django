@@ -18,6 +18,11 @@ class CreateCheckoutView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
+class FinalizeCheckoutView(generics.CreateAPIView):
+    serializer_class = serializers.FinalizeCheckoutSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 class CreateUserSubscriptionView(generics.CreateAPIView):
     serializer_class = serializers.UserSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]

@@ -93,6 +93,46 @@ def create_checkout_session(
     return response.url
 
 
+def serialize_subscription_data(subscription_response):
+    status = subscription_response.status
+    current_period_start = date_utils.timestamp_as_datetime(subscription_response.current_period_start)
+    current_period_end = date_utils.timestamp_as_datetime(subscription_response.current_period_end)
+    cancel_at_period_end = subscription_response.cancel_at_period_end
+    return {
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end,
+        "status": status,
+        "cancel_at_period_end": cancel_at_period_end,
+    }
+
+
+def get_checkout_session(stripe_id, raw=True):
+    response =  stripe.checkout.Session.retrieve(
+            stripe_id
+        )
+    if raw:
+        return response
+    return response.url
+
+
+def get_checkout_customer_plan(session_id):
+    checkout_r = get_checkout_session(session_id, raw=True)
+    customer_id = checkout_r.customer
+    sub_stripe_id = checkout_r.subscription
+    sub_r = get_subscription(sub_stripe_id, raw=True)
+    # current_period_start
+    # current_period_end
+    sub_plan = sub_r.plan
+    subscription_data = serialize_subscription_data(sub_r)
+    data = {
+        "customer_id": customer_id,
+        "plan_id": sub_plan.id,
+        "sub_stripe_id": sub_stripe_id,
+       **subscription_data,
+    }
+    return data
+
+
 def create_subscription(customer_id: str, price_id: str, trial_period_days: int=0, raw=False):
     if trial_period_days > 0:
         subscription = stripe.Subscription.create(
@@ -224,19 +264,6 @@ def get_customer_active_subscriptions(customer_stripe_id):
     )
     print(response)
     return response
-
-
-def serialize_subscription_data(subscription_response):
-    status = subscription_response.status
-    current_period_start = date_utils.timestamp_as_datetime(subscription_response.current_period_start)
-    current_period_end = date_utils.timestamp_as_datetime(subscription_response.current_period_end)
-    cancel_at_period_end = subscription_response.cancel_at_period_end
-    return {
-        "current_period_start": current_period_start,
-        "current_period_end": current_period_end,
-        "status": status,
-        "cancel_at_period_end": cancel_at_period_end,
-    }
 
 
 def get_subscription(stripe_id, raw=True):

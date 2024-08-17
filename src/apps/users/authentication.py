@@ -5,22 +5,25 @@ from rest_framework import HTTP_HEADER_ENCODING
 from rest_framework_simplejwt import authentication
 
 
-class JSONWebTokenCookieAuthentication(authentication.JWTAuthentication):
-    def get_header(self, request):
-        """
-        Extracts the header containing the JSON web token from the given
-        request.
-        """
-        header = request.COOKIES.get(settings.ACCESS_TOKEN_COOKIE)
 
-        if isinstance(header, str):
-            # Work around django test client oddness
-            header = header.encode(HTTP_HEADER_ENCODING)
+class CustomJWTAuthentication(authentication.JWTAuthentication):
+    def authenticate(self, request):
+        try:
+            header = self.get_header(request)
 
-        return header
+            if header is None:
+                raw_token = request.COOKIES.get(settings.AUTH_ACCESS_COOKIE)
+            else:
+                raw_token = self.get_raw_token(header)
 
-    def get_raw_token(self, header):
-        return header
+            if raw_token is None:
+                return None
+
+            validated_token = self.get_validated_token(raw_token)
+
+            return self.get_user(validated_token), validated_token
+        except:
+            return None
 
 
 class JSONWebTokenChannelsAuthentication(authentication.JWTAuthentication):
@@ -37,7 +40,7 @@ class JSONWebTokenChannelsAuthentication(authentication.JWTAuthentication):
         Extracts the header containing the JSON web token from the given
         request.
         """
-        header = cookies.get(settings.ACCESS_TOKEN_COOKIE)
+        header = cookies.get(settings.AUTH_ACCESS_COOKIE)
 
         if isinstance(header, str):
             # Work around django test client oddness

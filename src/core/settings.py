@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 import json
+from django.urls import reverse_lazy
 import environ
 import datetime
 from pathlib import Path
@@ -29,10 +30,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 ASGI_APPLICATION = "core.asgi.application"
 
 ENVIRONMENT_NAME = env("ENVIRONMENT_NAME", default="")
-
-# SENTRY_DSN = env("SENTRY_DSN", default=None)
-# SENTRY_TRACES_SAMPLE_RATE = env("SENTRY_TRACES_SAMPLE_RATE", default=0.2)
-# monitoring.init(SENTRY_DSN, ENVIRONMENT_NAME, SENTRY_TRACES_SAMPLE_RATE)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -58,7 +55,6 @@ DJANGO_CORE_APPS = [
 
 THIRD_PARTY_APPS = [
     "django_extensions",
-    "djstripe",
     "drf_yasg",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -88,21 +84,19 @@ INSTALLED_APPS = (
 SILENCED_SYSTEM_CHECKS = []
 
 MIDDLEWARE = [
-    #  HealthCheckMiddleware needs to be before the HostsRequestMiddleware
-    # "common.middleware.HealthCheckMiddleware",
-    # "aws_xray_sdk.ext.django.middleware.XRayMiddleware",
     "common.middleware.ManageCookiesMiddleware",
     "common.middleware.SetAuthTokenCookieMiddleware",
     "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
-    "common.middleware.UserProfileMiddleware",
+    # "common.middleware.UserProfileMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -266,8 +260,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.utils.custom_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        # "apps.users.authentication.JSONWebTokenCookieAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'apps.users.authentication.CustomJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     "DEFAULT_THROTTLE_RATES": {"anon": "100/day"},
@@ -280,10 +273,16 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
-ACCESS_TOKEN_COOKIE = 'token'
-REFRESH_TOKEN_COOKIE = 'refresh_token'
-REFRESH_TOKEN_LOGOUT_COOKIE = 'refresh_token_logout'
-COOKIE_MAX_AGE = 3600 * 24 * 14  # 14 days
+AUTH_ACCESS_COOKIE = 'access'
+AUTH_REFRESH_COOKIE = 'refresh'
+AUTH_REFRESH_PATH = reverse_lazy("jwt_token_refresh")
+AUTH_REFRESH_LOGOUT_COOKIE = 'refresh_logout'
+AUTH_REFRESH_LOGOUT_PATH = reverse_lazy("logout")
+AUTH_COOKIE_MAX_AGE = 3600 * 24 * 14  # 14 days
+AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default='True')
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAMESITE = 'None'
 
 SOCIAL_AUTH_USER_MODEL = "users.User"
 SOCIAL_AUTH_USER_FIELDS = ['email', 'username']
@@ -322,19 +321,8 @@ HASHID_FIELD_SALT = env("HASHID_FIELD_SALT")
 
 USER_NOTIFICATION_IMPL = "config.notifications.stdout"
 
-# WORKERS_EVENT_BUS_NAME = env("WORKERS_EVENT_BUS_NAME", default=None)
-
-# AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
-# AWS_REGION = env("AWS_REGION", default=None)
-
-# LAMBDA_TASKS_BASE_HANDLER = env("LAMBDA_TASKS_BASE_HANDLER", default="common.tasks.LambdaTask")
-# LAMBDA_TASKS_LOCAL_URL = env("LAMBDA_TASKS_LOCAL_URL", default=None)
-
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="sk_test_<CHANGE_ME>")
 STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE", default=False)
-DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
-DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
-DJSTRIPE_SUBSCRIBER_MODEL = "users.UserProfile"
 # Disable stripe checks for keys on django application start
 STRIPE_CHECKS_ENABLED = env.bool("STRIPE_CHECKS_ENABLED", default=True)
 if not STRIPE_CHECKS_ENABLED:
@@ -348,22 +336,7 @@ NOTIFICATIONS_STRATEGIES = ["InAppNotificationStrategy", "EmailNotificationStrat
 
 WEB_SOCKET_API_ENDPOINT_URL = env("WEB_SOCKET_API_ENDPOINT_URL", default="")
 
-# AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default=None)
-# AWS_EXPORTS_STORAGE_BUCKET_NAME = env("AWS_EXPORTS_STORAGE_BUCKET_NAME", default=None)
-# AWS_S3_ENDPOINT_URL = AWS_ENDPOINT_URL
-# AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default=None)
-# AWS_QUERYSTRING_EXPIRE = env("AWS_QUERYSTRING_EXPIRE", default=60 * 60 * 24)
-# AWS_CLOUDFRONT_KEY = os.environ.get('AWS_CLOUDFRONT_KEY', '').encode('ascii')
-# AWS_CLOUDFRONT_KEY_ID = os.environ.get('AWS_CLOUDFRONT_KEY_ID', None)
-
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-
-# XRAY_RECORDER = {
-#     'AWS_XRAY_TRACING_NAME': f'{env("PROJECT_NAME", default="")}-{ENVIRONMENT_NAME}-backend',
-#     'AUTO_INSTRUMENT': not DEBUG,
-#     'AWS_XRAY_CONTEXT_MISSING': 'IGNORE_ERROR',
-#     'PLUGINS': ('ECSPlugin',),
-# }
 
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=[])
 RATELIMIT_IP_META_KEY = "common.utils.get_client_ip"
@@ -387,11 +360,6 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 EMAIL_FROM_ADDRESS = env("EMAIL_FROM_ADDRESS", default=None)
 EMAIL_REPLY_ADDRESS = env.list("EMAIL_REPLY_ADDRESS", default=(EMAIL_FROM_ADDRESS,))
-
-# AWS_SES_REGION_NAME = env("AWS_SES_REGION_NAME", default=AWS_REGION)
-
-# If you want to use the SESv2 client
-# USE_SES_V2 = True
 
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")

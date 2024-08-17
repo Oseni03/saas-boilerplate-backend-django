@@ -84,7 +84,7 @@ class ManageCookiesMiddleware:
 
         if (cookies := getattr(request, "set_cookies", None)) and response.status_code == 200:  # noqa: PLR2004
             for key, value in cookies.items():
-                response.set_cookie(key, value, max_age=settings.COOKIE_MAX_AGE, httponly=True)
+                response.set_cookie(key, value, max_age=settings.AUTH_COOKIE_MAX_AGE, httponly=True)
 
         if delete_cookies := getattr(request, "delete_cookies", []):
             for cookie in delete_cookies:

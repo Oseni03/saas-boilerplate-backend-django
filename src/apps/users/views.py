@@ -50,8 +50,8 @@ class ChangePasswordView(generics.GenericAPIView):
         utils.set_auth_cookie(
             response,
             {
-                settings.ACCESS_TOKEN_COOKIE: serializer.data.get("access"),
-                settings.REFRESH_TOKEN_COOKIE: serializer.data.get("refresh"),
+                settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
+                settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
             },
         )
         return response
@@ -84,8 +84,8 @@ class CookieTokenObtainView(jwt_views.TokenObtainPairView):
             utils.set_auth_cookie(
                 response,
                 {
-                    settings.ACCESS_TOKEN_COOKIE: serializer.data.get("access"),
-                    settings.REFRESH_TOKEN_COOKIE: serializer.data.get("refresh"),
+                    settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
+                    settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
                 },
             )
         return response
@@ -108,8 +108,8 @@ class SignUpView(generics.GenericAPIView):
         utils.set_auth_cookie(
             response,
             {
-                settings.ACCESS_TOKEN_COOKIE: serializer.data.get("access"),
-                settings.REFRESH_TOKEN_COOKIE: serializer.data.get("refresh"),
+                settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
+                settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
             },
         )
         return response
@@ -195,8 +195,8 @@ class ValidateOTPView(generics.GenericAPIView):
         utils.set_auth_cookie(
             response,
             {
-                settings.ACCESS_TOKEN_COOKIE: serializer.data.get("access"),
-                settings.REFRESH_TOKEN_COOKIE: serializer.data.get("refresh"),
+                settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
+                settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
             },
         )
         return response
@@ -238,8 +238,8 @@ class CookieTokenRefreshView(jwt_views.TokenRefreshView):
         utils.set_auth_cookie(
             response,
             {
-                settings.ACCESS_TOKEN_COOKIE: serializer.data.get("access"),
-                settings.REFRESH_TOKEN_COOKIE: serializer.data.get("refresh"),
+                settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
+                settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
             },
         )
         return response

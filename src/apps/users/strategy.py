@@ -24,15 +24,15 @@ class DjangoJWTStrategy(DjangoStrategy):
                 utils.set_auth_cookie(
                     response,
                     {
-                        settings.ACCESS_TOKEN_COOKIE: str(self.refresh_token.access_token),
-                        settings.REFRESH_TOKEN_COOKIE: str(self.refresh_token),
+                        settings.AUTH_ACCESS_COOKIE: str(self.refresh_token.access_token),
+                        settings.AUTH_REFRESH_COOKIE: str(self.refresh_token),
                     },
                 )
             elif self.otp_auth_token:
                 otp_validate_url = self._construct_otp_validate_url(url)
                 response = super(DjangoJWTStrategy, self).redirect(otp_validate_url)
                 response.set_cookie(
-                    settings.OTP_AUTH_TOKEN_COOKIE, str(self.otp_auth_token), settings.COOKIE_MAX_AGE, httponly=True
+                    settings.OTP_AUTH_TOKEN_COOKIE, str(self.otp_auth_token), settings.AUTH_COOKIE_MAX_AGE, httponly=True
                 )
 
             # The token has a defined value, which means this is the

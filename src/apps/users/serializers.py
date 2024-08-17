@@ -247,7 +247,7 @@ class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
 
     def validate(self, attrs):
         request = self.context['request']
-        raw_token = request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE) or attrs.get('refresh')
+        raw_token = request.COOKIES.get(settings.AUTH_REFRESH_COOKIE) or attrs.get('refresh')
 
         if not raw_token:
             self.fail('invalid_token')
@@ -282,7 +282,7 @@ class LogoutSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         request = self.context['request']
-        raw_token = request.COOKIES.get(settings.REFRESH_TOKEN_LOGOUT_COOKIE) or attrs.get('refresh')
+        raw_token = request.COOKIES.get(settings.AUTH_REFRESH_LOGOUT_COOKIE) or attrs.get('refresh')
 
         if not raw_token:
             self.fail('invalid_token')

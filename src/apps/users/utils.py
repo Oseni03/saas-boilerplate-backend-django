@@ -6,34 +6,59 @@ from django.urls import reverse
 
 
 def set_auth_cookie(response, data):
-    cookie_max_age = settings.COOKIE_MAX_AGE
-    access = data.get(settings.ACCESS_TOKEN_COOKIE)
-    refresh = data.get(settings.REFRESH_TOKEN_COOKIE)
-    response.set_cookie(settings.ACCESS_TOKEN_COOKIE, access, max_age=cookie_max_age, httponly=True)
+    cookie_max_age = settings.AUTH_COOKIE_MAX_AGE
+    httponly = settings.AUTH_COOKIE_HTTP_ONLY
+    secure=settings.AUTH_COOKIE_SECURE,
+    samesite=settings.AUTH_COOKIE_SAMESITE
+    access = data.get(settings.AUTH_ACCESS_COOKIE)
+    refresh = data.get(settings.AUTH_REFRESH_COOKIE)
+    
+    response.set_cookie(
+        settings.AUTH_ACCESS_COOKIE, 
+        access, 
+        max_age=cookie_max_age, 
+        path=settings.AUTH_COOKIE_PATH,
+        httponly=True,
+        secure=secure,
+        samesite=samesite,
+    )
 
     if refresh:
         response.set_cookie(
-            settings.REFRESH_TOKEN_COOKIE,
+            settings.AUTH_REFRESH_COOKIE,
             refresh,
             max_age=cookie_max_age,
-            httponly=True,
-            path=reverse("jwt_token_refresh"),
+            httponly=httponly,
+            path=settings.AUTH_REFRESH_PATH,
+            secure=secure,
+            samesite=samesite,
         )
 
         response.set_cookie(
-            settings.REFRESH_TOKEN_LOGOUT_COOKIE,
+            settings.AUTH_REFRESH_LOGOUT_COOKIE,
             refresh,
             max_age=cookie_max_age,
-            httponly=True,
-            path=reverse("logout"),
+            httponly=httponly,
+            path=settings.AUTH_REFRESH_LOGOUT_PATH,
+            secure=secure,
+            samesite=samesite,
         )
 
 
 def reset_auth_cookie(response):
-    response.delete_cookie(settings.ACCESS_TOKEN_COOKIE)
-    response.delete_cookie(settings.REFRESH_TOKEN_COOKIE)
-    response.delete_cookie(settings.REFRESH_TOKEN_COOKIE, path=reverse("jwt_token_refresh"))
-    response.delete_cookie(settings.REFRESH_TOKEN_LOGOUT_COOKIE, path=reverse("logout"))
+    response.delete_cookie(
+        settings.AUTH_ACCESS_COOKIE,
+        path=settings.AUTH_COOKIE_PATH,
+    )
+    response.delete_cookie(settings.AUTH_REFRESH_COOKIE)
+    response.delete_cookie(
+        settings.AUTH_REFRESH_COOKIE, 
+        path=reverse(settings.AUTH_REFRESH_PATH)
+    )
+    response.delete_cookie(
+        settings.AUTH_REFRESH_LOGOUT_COOKIE, 
+        path=reverse(settings.AUTH_REFRESH_LOGOUT_PATH)
+    )
 
 
 def generate_otp_auth_token(user):

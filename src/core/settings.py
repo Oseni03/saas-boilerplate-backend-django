@@ -371,6 +371,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CHECKOUT_SUCCESS_URL = reverse_lazy("stripe-checkout-end")
-CHECKOUT_CANCEL_URL = reverse_lazy("stripe-checkout-end")
-CUSTOMER_PORTAL_SESSION_RETURN_URL = reverse_lazy("dashboard")
+CHECKOUT_SUCCESS_URL = "http://localhost:3000/dashboard"
+CHECKOUT_CANCEL_URL = "http://localhost:3000/pricing"
+CUSTOMER_PORTAL_SESSION_RETURN_URL = "http://localhost:3000/dashboard"

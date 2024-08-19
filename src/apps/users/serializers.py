@@ -101,7 +101,7 @@ class UserAccountConfirmationSerializer(serializers.Serializer):
 
         if not tokens.account_activation_token.check_token(user, token):
             raise exceptions.ValidationError(_("Malformed user account confirmation token"))
-
+        print(attrs)
         return attrs
 
     def create(self, validated_data):

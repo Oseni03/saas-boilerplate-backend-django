@@ -53,11 +53,9 @@ def reset_auth_cookie(response):
     response.delete_cookie(settings.AUTH_REFRESH_COOKIE)
     response.delete_cookie(
         settings.AUTH_REFRESH_COOKIE, 
-        path=reverse(settings.AUTH_REFRESH_PATH)
     )
     response.delete_cookie(
         settings.AUTH_REFRESH_LOGOUT_COOKIE, 
-        path=reverse(settings.AUTH_REFRESH_LOGOUT_PATH)
     )
 
 

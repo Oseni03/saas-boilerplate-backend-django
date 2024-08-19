@@ -17,3 +17,5 @@ scripts:
     - cd src && python manage.py sync_user_subscriptions --clear-dangling
   sync_user_subs:
     - cd src && python manage.py sync_user_subscriptions
+  clear_db:
+    - cd src && python manage.py flush

@@ -119,7 +119,8 @@ class ConfirmEmailView(generics.GenericAPIView):
     serializer_class = serializers.UserAccountConfirmationSerializer
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        print(kwargs)
         serializer = self.get_serializer(data=kwargs)
         if serializer.is_valid():
             serializer.save()

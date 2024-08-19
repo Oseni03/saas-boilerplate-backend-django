@@ -108,7 +108,7 @@ class UserAccountConfirmationSerializer(serializers.Serializer):
         user = validated_data.pop("user")
         user.is_confirmed = True
         user.save()
-        signals.email_confirmed_signal.send(models.user)
+        signals.email_confirmed_signal.send(models.User, instance=user)
         return {"ok": True}
 
 

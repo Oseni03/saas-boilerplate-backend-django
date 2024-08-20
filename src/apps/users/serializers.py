@@ -256,7 +256,11 @@ class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
             refresh = jwt_tokens.RefreshToken(raw_token)
         except (jwt_exceptions.InvalidToken, jwt_exceptions.TokenError):
             self.fail('invalid_token')
-
+        attrs["refresh"] = refresh
+        return attrs
+    
+    def create(self, validated_data):
+        refresh = validated_data["refresh"]
         if jwt_api_settings.ROTATE_REFRESH_TOKENS:
             if jwt_api_settings.BLACKLIST_AFTER_ROTATION:
                 try:

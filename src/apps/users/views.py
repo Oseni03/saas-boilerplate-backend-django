@@ -214,6 +214,17 @@ class DisableOTPView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CustomTokenVerifyView(jwt_views.TokenVerifyView):
+    def post(self, request, *args, **kwargs):
+        access_token = request.COOKIES.get(settings.AUTH_ACCESS_COOKIE)
+        print(access_token)
+
+        if access_token:
+            request.data['token'] = access_token
+
+        return super().post(request, *args, **kwargs)
+
+
 class CookieTokenRefreshView(jwt_views.TokenRefreshView):
     """Use the refresh token from an HTTP-only cookie and generate new pair (access, refresh)
 
@@ -224,6 +235,7 @@ class CookieTokenRefreshView(jwt_views.TokenRefreshView):
     """
 
     serializer_class = serializers.CookieTokenRefreshSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -21,7 +21,8 @@ social_patterns = [
 ]
 
 auth_patterns = [
-    path("token-refresh/", views.CookieTokenRefreshView.as_view(), name="jwt_token_refresh"),
+    path('jwt/verify/', views.CustomTokenVerifyView.as_view(), name="jwt_token_verify"),
+    path("jwt/refresh/", views.CookieTokenRefreshView.as_view(), name="jwt_token_refresh"),
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("login/", views.CookieTokenObtainView.as_view(), name="login"),
     path("register/", views.SignUpView.as_view(), name="register"),

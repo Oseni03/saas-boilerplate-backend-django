@@ -67,7 +67,6 @@ LOCAL_APPS = [
     "apps.users",
     "apps.notifications",
     "apps.feedbacks",
-    # "apps.finances",
     "apps.subscriptions",
     "apps.customers",
 ]

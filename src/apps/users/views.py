@@ -131,7 +131,7 @@ class PasswordResetView(generics.GenericAPIView):
     serializer_class = serializers.PasswordResetSerializer
     permission_classes = [permissions.AllowAny]
 
-    @ratelimit.ratelimit(key="ip", rate=ratelimit.ip_throttle_rate)
+    # @ratelimit.ratelimit(key="ip", rate=ratelimit.ip_throttle_rate)
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -145,8 +145,8 @@ class PasswordResetConfirmView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
-        data = kwargs["new_password"] = request.data.get("new_password")
-        serializer = self.get_serializer(data=data)
+        kwargs["new_password"] = request.data.get("new_password")
+        serializer = self.get_serializer(data=kwargs)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -215,6 +215,8 @@ class DisableOTPView(generics.GenericAPIView):
 
 
 class CustomTokenVerifyView(jwt_views.TokenVerifyView):
+    permission_classes = [permissions.AllowAny]
+    
     def post(self, request, *args, **kwargs):
         access_token = request.COOKIES.get(settings.AUTH_ACCESS_COOKIE)
         print(access_token)

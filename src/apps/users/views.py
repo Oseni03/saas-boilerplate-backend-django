@@ -1,13 +1,9 @@
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt import views as jwt_views, tokens as jwt_tokens
 from rest_framework_simplejwt.views import TokenViewBase
-from social_core.actions import do_complete
-from social_django.utils import psa
+from djoser.social.views import ProviderAuthView
 
 from common import ratelimit
 
@@ -283,28 +279,20 @@ class LogoutView(TokenViewBase):
         return response
 
 
-@never_cache
-@csrf_exempt
-@psa("social:complete")
-def complete(request, backend, *args, **kwargs):
-    """Authentication complete view"""
+class CustomProviderAuthView(ProviderAuthView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
 
-    def _do_login(backend, user, social_user):
-        user.backend = "{0}.{1}".format(backend.__module__, backend.__class__.__name__)
+        if response.status_code == 201:
+            access_token = response.data.get('access')
+            refresh_token = response.data.get('refresh')
 
-        if user.otp_verified and user.otp_enabled:
-            otp_auth_token = utils.generate_otp_auth_token(user)
-            backend.strategy.set_otp_auth_token(otp_auth_token)
-        else:
-            token = jwt_tokens.RefreshToken.for_user(user)
-            backend.strategy.set_jwt(token)
+            utils.set_auth_cookie(
+                response,
+                {
+                    settings.AUTH_ACCESS_COOKIE: access_token,
+                    settings.AUTH_REFRESH_COOKIE: refresh_token,
+                },
+            )
 
-    return do_complete(
-        request.backend,
-        _do_login,
-        user=request.user,
-        redirect_name=REDIRECT_FIELD_NAME,
-        request=request,
-        *args,  # noqa: B026
-        **kwargs,
-    )
+        return response

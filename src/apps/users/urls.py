@@ -1,7 +1,6 @@
 from django.conf import settings
-from django.urls import path, include
+from django.urls import path, include, re_path
 from social_core.utils import setting_name
-from social_django import views as django_social_views
 
 extra = getattr(settings, setting_name("TRAILING_SLASH"), True) and "/" or ""
 
@@ -9,14 +8,10 @@ from . import views
 
 social_patterns = [
     # authentication / association
-    path(f"login/<str:backend>{extra}", django_social_views.auth, name='begin'),
-    path(f"complete/<str:backend>{extra}", views.complete, name='complete'),
-    # disconnection
-    path(f"disconnect/<str:backend>{extra}", django_social_views.disconnect, name='disconnect'),
-    path(
-        f"disconnect/<str:backend>/<int:association_id>{extra}",
-        django_social_views.disconnect,
-        name='disconnect_individual',
+    re_path(
+        r'^o/(?P<provider>\S+)/$',
+        views.CustomProviderAuthView.as_view(),
+        name='provider-auth'
     ),
 ]
 

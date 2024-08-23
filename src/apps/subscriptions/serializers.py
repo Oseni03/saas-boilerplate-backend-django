@@ -198,28 +198,121 @@ class WebhookSerializer(serializers.Serializer):
         event = billing.get_stripe_webhook_event(self.request)
         event_type = event["event_type"]
         data = event["data"]
-
-        if event_type == "checkout.session.completed":
+        
+        print(data)
+        
+        if event_type == 'billing_portal.configuration.created':
+            configuration = data['object']
+        elif event_type == 'billing_portal.configuration.updated':
+            configuration = data['object']
+        elif event_type == 'billing_portal.session.created':
+            session = data['object']
+        elif event_type == 'checkout.session.async_payment_failed':
+            session = data['object']
+        elif event_type == 'checkout.session.async_payment_succeeded':
+            session = data['object']
+        elif event_type == 'checkout.session.completed':
             """ 
             payment is successful and the subscription is created.
             You should provision the subscription and save the customer ID to your database.
             """
-            print(data)
-        elif event_type == "invoice.paid":
+            session = data['object']
+        elif event_type == 'checkout.session.expired':
+            session = data['object']
+        elif event_type == 'coupon.created':
+            coupon = data['object']
+        elif event_type == 'coupon.deleted':
+            coupon = data['object']
+        elif event_type == 'coupon.updated':
+            coupon = data['object']
+        elif event_type == 'customer.created':
+            customer = data['object']
+        elif event_type == 'customer.deleted':
+            customer = data['object']
+        elif event_type == 'customer.updated':
+            customer = data['object']
+        elif event_type == 'customer.discount.created':
+            discount = data['object']
+        elif event_type == 'customer.discount.deleted':
+            discount = data['object']
+        elif event_type == 'customer.discount.updated':
+            discount = data['object']
+        elif event_type == 'customer.source.created':
+            source = data['object']
+        elif event_type == 'customer.source.deleted':
+            source = data['object']
+        elif event_type == 'customer.source.expiring':
+            source = data['object']
+        elif event_type == 'customer.source.updated':
+            source = data['object']
+        elif event_type == 'customer.subscription.created':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.deleted':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.paused':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.pending_update_applied':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.pending_update_expired':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.resumed':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.trial_will_end':
+            subscription = data['object']
+        elif event_type == 'customer.subscription.updated':
+            subscription = data['object']
+        elif event_type == 'invoice.created':
+            invoice = data['object']
+        elif event_type == 'invoice.deleted':
+            invoice = data['object']
+        elif event_type == 'invoice.finalization_failed':
+            invoice = data['object']
+        elif event_type == 'invoice.finalized':
+            invoice = data['object']
+        elif event_type == 'invoice.marked_uncollectible':
+            invoice = data['object']
+        elif event_type == 'invoice.overdue':
+            invoice = data['object']
+        elif event_type == 'invoice.paid':
             """ 
             Continue to provision the subscription as payments continue to be made.
             Store the status in your databse and check when a user access your service.
             This approach helps you avoid hitting rate limits.
             """
-            print(data)
-        elif event_type == "invoice.payment_failed":
+            invoice = data['object']
+        elif event_type == 'invoice.payment_action_required':
+            invoice = data['object']
+        elif event_type == 'invoice.payment_failed':
             """ 
             The payment failed or the customer does not have a valid payment method.
             The subscription becomes past_due. Notify your customer and send them to the 
             customer portal to update their payment information.
             """
-            print(data)
+            invoice = data['object']
+        elif event_type == 'invoice.payment_succeeded':
+            invoice = data['object']
+        elif event_type == 'invoice.sent':
+            invoice = data['object']
+        elif event_type == 'invoice.upcoming':
+            invoice = data['object']
+        elif event_type == 'invoice.updated':
+            invoice = data['object']
+        elif event_type == 'invoice.voided':
+            invoice = data['object']
+        elif event_type == 'invoice.will_be_due':
+            invoice = data['object']
+        elif event_type == 'price.created':
+            price = data['object']
+        elif event_type == 'price.deleted':
+            price = data['object']
+        elif event_type == 'price.updated':
+            price = data['object']
+        elif event_type == 'promotion_code.created':
+            promotion_code = data['object']
+        elif event_type == 'promotion_code.updated':
+            promotion_code = data['object']
+            # ... handle other event types
         else:
-            print("Unhandled event type {}".format(event_type,))
+            print('Unhandled event type {}'.format(event_type))
         
         return {"status": "success"}

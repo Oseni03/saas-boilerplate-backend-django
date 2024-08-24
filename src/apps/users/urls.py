@@ -1,19 +1,7 @@
-from django.conf import settings
 from django.urls import path, include, re_path
-from social_core.utils import setting_name
-
-extra = getattr(settings, setting_name("TRAILING_SLASH"), True) and "/" or ""
 
 from . import views
 
-social_patterns = [
-    # authentication / association
-    re_path(
-        r'^o/(?P<provider>\S+)/$',
-        views.CustomProviderAuthView.as_view(),
-        name='provider-auth'
-    ),
-]
 
 auth_patterns = [
     path('jwt/verify/', views.CustomTokenVerifyView.as_view(), name="jwt_token_verify"),
@@ -25,7 +13,11 @@ auth_patterns = [
     path("password-reset/", views.PasswordResetView.as_view(), name="password-reset"),
     path("password-reset/confirm/<str:user>/<token>/", views.PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
     path("validate-otp/", views.ValidateOTPView.as_view(), name="validate-otp"),
-    path('social/', include((social_patterns, 'social'), namespace='social')),
+    re_path(
+        r'^o/(?P<provider>\S+)/$',
+        views.CustomProviderAuthView.as_view(),
+        name='provider-auth'
+    ),
 ]
 
 user_patterns = [

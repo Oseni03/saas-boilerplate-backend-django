@@ -9,7 +9,7 @@ from common import ratelimit
 
 from .models import UserProfile
 
-from . import serializers, utils
+from . import serializers, utils, signals, models
 
 
 class CurrentUserView(generics.GenericAPIView):
@@ -27,6 +27,10 @@ class CurrentUserView(generics.GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, *args, **kwargs):
+        signals.account_deactivated_signal.send(models.User, instance=request.user)
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ChangePasswordView(generics.GenericAPIView):

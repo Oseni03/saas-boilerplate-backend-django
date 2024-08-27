@@ -28,7 +28,7 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
         model = SubscriptionPrice
         fields = [
             "id", "subscription_name", "subscription_subtitle", 
-            "currency", "interval", "features", 
+            "currency", "interval", "features", "stripe_id",
             "trial_period_days", "amount", "interval_display"
         ]
 

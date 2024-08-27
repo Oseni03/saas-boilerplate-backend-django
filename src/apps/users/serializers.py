@@ -10,6 +10,7 @@ from rest_framework import exceptions, serializers, validators
 from rest_framework_simplejwt import serializers as jwt_serializers, tokens as jwt_tokens, exceptions as jwt_exceptions
 from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
+from apps.subscriptions.models import UserSubscription
 from common.decorators import context_user_required
 
 from . import models, tokens, jwt, notifications, signals
@@ -26,10 +27,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source="user.email", read_only=True)
     roles = serializers.SerializerMethodField()
     avatar = serializers.FileField(required=False)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
-        fields = ("id", "first_name", "last_name", "phone_number", "email", "roles", "avatar")
+        fields = ("id", "first_name", "last_name", "phone_number", "email", "roles", "avatar", "is_subscribed")
 
     @staticmethod
     def validate_avatar(avatar):
@@ -44,6 +46,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields["avatar"] = serializers.FileField(source="avatar.thumbnail", default="")
         return super().to_representation(instance)
+    
+    def get_is_subscribed(self, obj): 
+        user_sub_objs = UserSubscription.objects.filter(user=obj.user)
+        if not user_sub_objs.exists():
+            return False
+        return user_sub_objs.first().is_active_status
 
     def update(self, instance, validated_data):
         avatar = validated_data.pop("avatar", None)

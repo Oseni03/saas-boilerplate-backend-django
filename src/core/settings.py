@@ -61,6 +61,7 @@ THIRD_PARTY_APPS = [
     "social_django",
     "whitenoise",
     'channels',
+    "django_filters",
 ]
 
 LOCAL_APPS = [
@@ -263,6 +264,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
     "DEFAULT_THROTTLE_RATES": {"anon": "100/day"},
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+    )
 }
 
 SIMPLE_JWT = {

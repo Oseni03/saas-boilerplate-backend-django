@@ -7,6 +7,7 @@ class PricingView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = serializers.SubscriptionPriceSerializer
     queryset = models.SubscriptionPrice.objects.filter(active=True)
+    filterset_fields = ("interval", "featured")
 
 
 class CreateCheckoutView(generics.CreateAPIView):

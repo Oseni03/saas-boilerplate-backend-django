@@ -211,7 +211,7 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
         user.groups.set(groups)
     else:
         # Set the user group to the combination of any other type of group the user might belong to 
-        # and the only to the newly subscribed subscription
+        # and to the newly subscribed subscription group(s)
 
         # To get the list of all subscription except for the newly subscribed one
         subs_qs = Subscription.objects.filter(active=True)

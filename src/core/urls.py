@@ -42,8 +42,7 @@ urlpatterns = [
             [
                 path("", include("apps.users.urls")),
                 path("notifications/", include("apps.notifications.urls")),
-                path("feedbacks/", include("apps.feedbacks.urls")),
-                # path("finances/", include("apps.finances.urls")),
+                path("tickets/", include("apps.tickets.urls")),
                 path("", include("apps.subscriptions.urls")),
             ]
         ),

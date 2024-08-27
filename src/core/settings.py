@@ -67,7 +67,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.users",
     "apps.notifications",
-    "apps.feedbacks",
+    "apps.tickets",
     "apps.subscriptions",
     "apps.customers",
 ]

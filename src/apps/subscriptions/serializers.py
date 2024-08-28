@@ -52,6 +52,7 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
 class CreateCheckoutSerializer(serializers.Serializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     price_id = serializers.CharField(write_only=True)
+    url = serializers.URLField(read_only=True)
 
     def validate(self, attrs):
         price_id = attrs["price_id"]
@@ -79,7 +80,8 @@ class CreateCheckoutSerializer(serializers.Serializer):
             trial_period_days=price.trial_period_days,
             raw=False
         )
-        return url
+        validated_data["url"] = url
+        return validated_data
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):

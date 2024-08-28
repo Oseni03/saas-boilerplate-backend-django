@@ -70,6 +70,7 @@ LOCAL_APPS = [
     "apps.tickets",
     "apps.subscriptions",
     "apps.customers",
+    "apps.integrations",
 ]
 
 INSTALLED_APPS = (

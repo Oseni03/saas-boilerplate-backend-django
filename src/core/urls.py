@@ -31,7 +31,6 @@ urlpatterns = [
         "admin/", 
         include(
             [
-                # path("finances/", include("apps.finances.urls_admin")), 
                 path("", admin.site.urls)
             ]
         ),
@@ -40,9 +39,10 @@ urlpatterns = [
         "api/",
         include(
             [
-                path("", include("apps.users.urls")),
                 path("notifications/", include("apps.notifications.urls")),
                 path("tickets/", include("apps.tickets.urls")),
+                path("integrations/", include("apps.integrations.urls")),
+                path("", include("apps.users.urls")),
                 path("", include("apps.subscriptions.urls")),
             ]
         ),

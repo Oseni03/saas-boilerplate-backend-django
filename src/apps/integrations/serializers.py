@@ -1,3 +1,4 @@
+from datetime import timedelta, timezone
 from hashid_field import rest
 from rest_framework import serializers
 
@@ -41,6 +42,11 @@ class IntegrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid code")
         validated_data["access_token"] = resp.get("access_token")
         validated_data["refresh_token"] = resp.get("refresh_token")
-        validated_data["expires_at"] = resp.get("expires_at") # convert timezone to datatime
+        validated_data["expires_at"] = timezone.now() + timedelta(
+            seconds=int(
+                resp.get("expires_in", None)
+                or resp.get("issued_at")
+            )
+        ) # convert timezone to datatime
         validated_data["webhook_url"] = resp.get("webhook_url")
         return super().create(validated_data)

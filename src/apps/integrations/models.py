@@ -15,9 +15,13 @@ class Thirdparty(models.Model):
     scopes = models.TextField(help_text="coma separated scopes")
     slug = models.SlugField(null=True, blank=True, unique=True)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through="Integrations")
+    is_active = models.BooleanField(default=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Thirdparties"
 
     def __str__(self) -> str:
         return str(self.name)
@@ -55,3 +59,9 @@ class Integrations(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        models.UniqueConstraint(
+            fields=["user", "thirdparty"], 
+            name="unique_user_thirdparty",
+        )

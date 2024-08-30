@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 import json
+from urllib.parse import urljoin
 from django.urls import reverse_lazy
 import environ
 import datetime
@@ -41,6 +42,7 @@ SECRET_KEY = "django-insecure-fl8wx8v^f+napyno=zf#)et=+4n7-uyovd+&n**jhf!bgd8z!)
 DEBUG = env("DJANGO_DEBUG")
 IS_LOCAL_DEBUG = DEBUG and ENVIRONMENT_NAME == "local"
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
+DOMAIN_URL = env("DOMAIN_URL")
 
 # Application definition
 
@@ -378,3 +380,5 @@ CORS_ALLOW_CREDENTIALS = True
 CHECKOUT_SUCCESS_URL = "http://localhost:3000/dashboard"
 CHECKOUT_CANCEL_URL = "http://localhost:3000/pricing"
 CUSTOMER_PORTAL_SESSION_RETURN_URL = "http://localhost:3000/dashboard"
+
+INTEGRATION_REDIRECT_URL = env("INTEGRATION_REDIRECT_URL")

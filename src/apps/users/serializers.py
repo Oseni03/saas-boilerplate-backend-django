@@ -28,10 +28,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     avatar = serializers.FileField(required=False)
     is_subscribed = serializers.SerializerMethodField()
+    otp_enabled = serializers.BooleanField(read_only=True, source="user.otp_enabled")
 
     class Meta:
         model = models.UserProfile
-        fields = ("id", "first_name", "last_name", "phone_number", "email", "roles", "avatar", "is_subscribed")
+        fields = (
+            "id", "first_name", "last_name", "phone_number", "email", 
+            "roles", "avatar", "is_subscribed", "otp_enabled")
 
     @staticmethod
     def validate_avatar(avatar):
@@ -90,6 +93,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
         if jwt_api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, user)
+        
+        signals.send_account_confirmation_email_signal.send(models.User, instance=user)
 
         return {'id': user.id, 'email': user.email, 'access': str(refresh.access_token), 'refresh': str(refresh)}
 

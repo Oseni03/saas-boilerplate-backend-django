@@ -1,5 +1,4 @@
 from django.dispatch import Signal
-from django.db.models.signals import post_save
 
 from apps.subscriptions.models import UserSubscription
 from common import billing
@@ -9,6 +8,7 @@ from apps.users import notifications, tokens
 
 
 email_confirmed_signal = Signal()
+send_account_confirmation_email_signal = Signal()
 account_deactivated_signal = Signal()
 
 
@@ -17,7 +17,7 @@ def send_account_confirmation_email(sender, instance, *args, **kwargs):
         user=instance, data={'user_id': instance.id.hashid, 'token': tokens.account_activation_token.make_token(instance)}
     ).send()
 
-post_save.connect(send_account_confirmation_email, sender=User)
+send_account_confirmation_email_signal.connect(send_account_confirmation_email, sender=User)
 
 
 def deactivate_user_account(sender, instance, *args, **kwargs):

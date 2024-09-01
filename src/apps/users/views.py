@@ -153,11 +153,11 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GenerateOTPView(generics.GenericAPIView):
+class GenerateOTPView(generics.CreateAPIView):
     serializer_class = serializers.GenerateOTPSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

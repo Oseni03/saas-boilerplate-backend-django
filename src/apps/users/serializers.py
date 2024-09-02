@@ -245,13 +245,9 @@ class CookieTokenObtainPairSerializer(jwt_serializers.TokenObtainPairSerializer)
         except exceptions.AuthenticationFailed as e:
             raise exceptions.ValidationError(e.detail)
 
-        return data
-
-    def create(self, validated_data):
         if self.user.otp_enabled and self.user.otp_verified:
             return {"otp_auth_token": str(generate_otp_auth_token(self.user))}
-
-        return validated_data
+        return data
 
 
 class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):

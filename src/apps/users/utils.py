@@ -2,7 +2,6 @@ from django.utils import timezone
 from rest_framework_simplejwt.tokens import AccessToken
 
 from django.conf import settings
-from django.urls import reverse
 
 
 def set_auth_cookie(response, data):
@@ -12,6 +11,7 @@ def set_auth_cookie(response, data):
     samesite=settings.AUTH_COOKIE_SAMESITE
     access = data.get(settings.AUTH_ACCESS_COOKIE)
     refresh = data.get(settings.AUTH_REFRESH_COOKIE)
+    otp_auth_token = data.get(settings.OTP_AUTH_TOKEN_COOKIE)
     
     response.set_cookie(
         settings.AUTH_ACCESS_COOKIE, 
@@ -43,6 +43,16 @@ def set_auth_cookie(response, data):
             secure=secure,
             samesite=samesite,
         )
+    elif otp_auth_token:
+        response.set_cookie(
+            settings.OTP_AUTH_TOKEN_COOKIE, 
+            otp_auth_token, 
+            max_age=cookie_max_age, 
+            path=settings.AUTH_COOKIE_PATH,
+            httponly=True,
+            secure=secure,
+            samesite=samesite,
+        )
 
 
 def reset_auth_cookie(response):
@@ -56,6 +66,9 @@ def reset_auth_cookie(response):
     )
     response.delete_cookie(
         settings.AUTH_REFRESH_LOGOUT_COOKIE, 
+    )
+    response.delete_cookie(
+        settings.OTP_AUTH_TOKEN_COOKIE, 
     )
 
 

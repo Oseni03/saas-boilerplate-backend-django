@@ -343,7 +343,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=[])
 RATELIMIT_IP_META_KEY = "common.utils.get_client_ip"
 
-OTP_AUTH_ISSUER_NAME = env("OTP_AUTH_ISSUER_NAME", default="")
+OTP_AUTH_ISSUER_NAME = env("OTP_AUTH_ISSUER_NAME", default="SaaS Boilerplate")
 OTP_AUTH_TOKEN_COOKIE = 'otp_auth_token'
 OTP_AUTH_TOKEN_LIFETIME_MINUTES = datetime.timedelta(minutes=env.int('OTP_AUTH_TOKEN_LIFETIME_MINUTES', default=5))
 OTP_VALIDATE_PATH = "/auth/validate-otp"

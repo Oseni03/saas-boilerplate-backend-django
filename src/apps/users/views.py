@@ -70,8 +70,6 @@ class CookieTokenObtainView(jwt_views.TokenObtainPairView):
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
 
-        print(response)
-
         if serializer.data.get("otp_auth_token"):
 
             utils.set_auth_cookie(
@@ -182,7 +180,7 @@ class ValidateOTPView(generics.GenericAPIView):
     serializer_class = serializers.ValidateOTPSerializer
     permission_classes = [permissions.AllowAny]
 
-    @ratelimit.ratelimit(key="ip", rate=ratelimit.ip_throttle_rate)
+    # @ratelimit.ratelimit(key="ip", rate=ratelimit.ip_throttle_rate)
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid(raise_exception=False):

@@ -28,7 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     avatar = serializers.FileField(required=False)
     is_subscribed = serializers.SerializerMethodField()
-    otp_enabled = serializers.BooleanField(read_only=True, source="user.otp_enabled")
+    otp_enabled = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
@@ -55,6 +55,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not user_sub_objs.exists():
             return False
         return user_sub_objs.first().is_active_status
+    
+    def get_otp_enabled(self, obj: models.UserProfile):
+        user = obj.user
+        return user.otp_enabled and user.otp_verified
 
     def update(self, instance, validated_data):
         avatar = validated_data.pop("avatar", None)

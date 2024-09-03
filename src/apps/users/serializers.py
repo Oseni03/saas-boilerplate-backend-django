@@ -238,10 +238,13 @@ class CookieTokenObtainPairSerializer(jwt_serializers.TokenObtainPairSerializer)
 
     access = serializers.CharField(read_only=True, default=None)
     refresh = serializers.CharField(read_only=True, default=None)
+    user = UserProfileSerializer(read_only=True, many=False)
 
     def validate(self, attrs):
         try:
             data = super().validate(attrs)
+            profile = models.UserProfile.objects.get(user=self.user)
+            data["user"] = profile
         except exceptions.AuthenticationFailed as e:
             raise exceptions.ValidationError(e.detail)
 
@@ -345,6 +348,7 @@ class ValidateOTPSerializer(serializers.Serializer):
     otp_auth_token = serializers.CharField(required=False, write_only=True)
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
+    user = UserProfileSerializer(read_only=True, many=False)
 
     default_error_messages = {
         'invalid_token': _(f'No valid token found in cookie \'{settings.OTP_AUTH_TOKEN_COOKIE}\''),
@@ -377,7 +381,12 @@ class ValidateOTPSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         refresh = RefreshToken.for_user(self.user)
-        return {"refresh": str(refresh), "access": str(refresh.access_token)}
+        profile = models.UserProfile.objects.get(user=self.user)
+        return {
+            "refresh": str(refresh), 
+            "access": str(refresh.access_token),
+            "user": profile,
+        }
 
 
 @context_user_required

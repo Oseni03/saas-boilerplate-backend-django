@@ -218,7 +218,6 @@ class CustomTokenVerifyView(jwt_views.TokenVerifyView):
     
     def post(self, request, *args, **kwargs):
         access_token = request.COOKIES.get(settings.AUTH_ACCESS_COOKIE)
-        print(access_token)
 
         if access_token:
             request.data['token'] = access_token

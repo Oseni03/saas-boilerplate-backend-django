@@ -286,6 +286,9 @@ class CustomProviderAuthView(ProviderAuthView):
         response = super().post(request, *args, **kwargs)
 
         if response.status_code == 201:
+            user = response.data.get("user")
+            profile = models.UserProfile.objects.get(user__email=user)
+            response.data["user"] = serializers.UserProfileSerializer(profile).data
             access_token = response.data.get('access')
             refresh_token = response.data.get('refresh')
 

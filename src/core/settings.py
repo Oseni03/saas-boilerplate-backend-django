@@ -64,6 +64,7 @@ THIRD_PARTY_APPS = [
     "whitenoise",
     'channels',
     "django_filters",
+    "djoser",
 ]
 
 LOCAL_APPS = [
@@ -115,6 +116,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -253,7 +256,7 @@ AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
-    'social_core.backends.facebook.FacebookOAuth2',
+    # 'social_core.backends.facebook.FacebookOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -289,34 +292,6 @@ AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default='True')
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
 AUTH_COOKIE_SAMESITE = 'None'
-
-SOCIAL_AUTH_USER_MODEL = "users.User"
-SOCIAL_AUTH_USER_FIELDS = ['email', 'username']
-SOCIAL_AUTH_STRATEGY = "apps.users.strategy.DjangoJWTStrategy"
-SOCIAL_AUTH_JSONFIELD_ENABLED = True
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = env.bool('SOCIAL_AUTH_REDIRECT_IS_HTTPS', default=True)
-SOCIAL_AUTH_PIPELINE = (
-    'social_core.pipeline.social_auth.social_details',
-    'social_core.pipeline.social_auth.social_uid',
-    'social_core.pipeline.social_auth.social_user',
-    'social_core.pipeline.user.get_username',
-    'social_core.pipeline.social_auth.associate_by_email',
-    'social_core.pipeline.user.create_user',
-    'social_core.pipeline.social_auth.associate_user',
-    'social_core.pipeline.social_auth.load_extra_data',
-    'social_core.pipeline.user.user_details',
-)
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = env.list('SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', default=[])
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', default='')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', default='')
-SOCIAL_AUTH_FACEBOOK_KEY = env('SOCIAL_AUTH_FACEBOOK_KEY', default='')
-SOCIAL_AUTH_FACEBOOK_SECRET = env('SOCIAL_AUTH_FACEBOOK_SECRET', default='')
-SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'public_profile']
-SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
-    'fields': 'id, name, email',
-}
-SOCIAL_AUTH_LOGIN_ERROR_URL = "/"
-SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ["locale"]
 
 SWAGGER_SETTINGS = {
     'DEFAULT_INFO': 'config.urls_api.api_info',
@@ -382,3 +357,20 @@ CHECKOUT_CANCEL_URL = "http://localhost:3000/pricing"
 CUSTOMER_PORTAL_SESSION_RETURN_URL = "http://localhost:3000/dashboard"
 
 INTEGRATION_REDIRECT_URL = env("INTEGRATION_REDIRECT_URL")
+
+# DJOSER SOCIAL AUTH CONFIGURATIONS
+DJOSER = {
+    "SOCIAL_AUTH_TOKEN_STRATEGY": 'djoser.social.token.jwt.TokenStrategy',
+    "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": [
+        "http://localhost:3000/auth/google", 
+    ]
+}
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env("GOOGLE_CLIENT_ID")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env("GOOGLE_SECRET")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "openid",
+]
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name"]

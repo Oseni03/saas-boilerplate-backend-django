@@ -277,7 +277,7 @@ def create_customer_portal(
     )
     if raw:
         return session
-    return session.id
+    return session.url
 
 
 def get_stripe_webhook_event(request):

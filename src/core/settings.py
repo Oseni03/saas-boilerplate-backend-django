@@ -42,7 +42,8 @@ SECRET_KEY = "django-insecure-fl8wx8v^f+napyno=zf#)et=+4n7-uyovd+&n**jhf!bgd8z!)
 DEBUG = env("DJANGO_DEBUG")
 IS_LOCAL_DEBUG = DEBUG and ENVIRONMENT_NAME == "local"
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
-DOMAIN_URL = env("DOMAIN_URL")
+FRONTEND_DOMAIN_URL = env("FRONTEND_DOMAIN_URL")
+BACKEND_DOMAIN_URL = env("BACKEND_DOMAIN_URL")
 
 # Application definition
 
@@ -300,7 +301,7 @@ SWAGGER_SETTINGS = {
 
 HASHID_FIELD_SALT = env("HASHID_FIELD_SALT")
 
-USER_NOTIFICATION_IMPL = "config.notifications.stdout"
+# USER_NOTIFICATION_IMPL = "config.notifications.stdout"
 
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="sk_test_<CHANGE_ME>")
 STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE", default=False)
@@ -311,7 +312,7 @@ SUBSCRIPTION_TRIAL_PERIOD_DAYS = env("SUBSCRIPTION_TRIAL_PERIOD_DAYS", default=7
 
 NOTIFICATIONS_STRATEGIES = ["InAppNotificationStrategy", "EmailNotificationStrategy", "SMSNotificationStrategy", "PushNotificationStrategy"]
 
-WEB_SOCKET_API_ENDPOINT_URL = env("WEB_SOCKET_API_ENDPOINT_URL", default="")
+# WEB_SOCKET_API_ENDPOINT_URL = env("WEB_SOCKET_API_ENDPOINT_URL", default="")
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -345,6 +346,12 @@ FCM_SERVER_KEY = env("FCM_SERVER_KEY", default="")
 
 # USER SUBSCRIPTION SETTINGS
 ALLOW_CUSTOM_GROUP = True
+SUBSCRIPTION_GROUPS = env("SUBSCRIPTION_GROUPS")
+SUBSCRIPTION_PERMISSIONS = [
+    ("advanced", "Advanced Perm"),
+    ("pro", "Pro Perm"),
+    ("basic", "Basic Perm")
+]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
@@ -352,9 +359,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CHECKOUT_SUCCESS_URL = "http://localhost:3000/dashboard"
-CHECKOUT_CANCEL_URL = "http://localhost:3000/pricing"
-CUSTOMER_PORTAL_SESSION_RETURN_URL = "http://localhost:3000/dashboard"
+CHECKOUT_SUCCESS_URL = env("CHECKOUT_SUCCESS_URL", default="http://localhost:3000/dashboard")
+CHECKOUT_CANCEL_URL = env("CHECKOUT_CANCEL_URL", default="http://localhost:3000/pricing")
+CUSTOMER_PORTAL_SESSION_RETURN_URL = env("CUSTOMER_PORTAL_SESSION_RETURN_URL", default="http://localhost:3000/dashboard")
 
 INTEGRATION_REDIRECT_URL = env("INTEGRATION_REDIRECT_URL")
 

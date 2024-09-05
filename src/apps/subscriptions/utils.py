@@ -1,8 +1,6 @@
 from apps.subscriptions.models import Subscription, UserSubscription
 from apps.customers.models import Customer
-from django.contrib.auth.models import Group, Permission
 from common import billing
-from . import constants
 
 
 def refresh_users_subscriptions(user_ids=None, active_only=True):
@@ -41,28 +39,6 @@ def clear_dangling_subs() -> str | None:
                     reason="Canceling dangling active subscriptions", 
                     cancel_at_period_end=True
                 )
-
-
-def init_permissions():
-    for plan in constants.subscription_plan_groups:
-        group, _ = Group.objects.get_or_create(name=plan.lower())
-        if plan == constants.SubscriptionPlanGroups.Advance:
-            group.permissions.add(
-                Permission.objects.get(codename=constants.CommomPermissions.Advance),
-                Permission.objects.get(codename=constants.CommomPermissions.Pro),
-                Permission.objects.get(codename=constants.CommomPermissions.Basic),
-            )
-        elif plan == constants.SubscriptionPlanGroups.Pro:
-            group.permissions.add(
-                Permission.objects.get(codename=constants.CommomPermissions.Pro),
-                Permission.objects.get(codename=constants.CommomPermissions.Basic),
-            )
-        elif plan == constants.SubscriptionPlanGroups.Basic:
-            group.permissions.add(
-                Permission.objects.get(codename=constants.CommomPermissions.Basic)
-            )
-        
-        group.save()
 
 
 def sync_subs() -> str | None:

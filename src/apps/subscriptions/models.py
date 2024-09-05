@@ -7,17 +7,10 @@ from django.contrib.auth.models import Group, Permission
 
 from common import billing
 
-from .constants import CommomPermissions
 from .managers import UserSubscriptionManger
 
 User = settings.AUTH_USER_MODEL
 
-
-SUBSCRIPTION_PERMISSIONS =[
-    (CommomPermissions.Advance, "Advanced Perm"), # subscriptions.advanced
-    (CommomPermissions.Pro, "Pro Perm"), # subscriptions.pro
-    (CommomPermissions.Basic, "Basic Perm"), # subscriptions.basic
-]
 
 # Create your models here.
 class Subscription(models.Model):
@@ -34,7 +27,7 @@ class Subscription(models.Model):
         Permission, 
         limit_choices_to={
             "content_type__app_label": "subscriptions", 
-            "codename__in": [x[0] for x in SUBSCRIPTION_PERMISSIONS]}
+            "codename__in": [x[0] for x in settings.SUBSCRIPTION_PERMISSIONS]}
     )
     features = models.TextField(
         help_text="Features for pricing separated by new line", 
@@ -47,7 +40,7 @@ class Subscription(models.Model):
 
     class Meta:
         ordering = ["order", "-updated"]
-        permissions = SUBSCRIPTION_PERMISSIONS
+        permissions = settings.SUBSCRIPTION_PERMISSIONS
     
     def __str__(self) -> str:
         return str(self.name)
@@ -90,7 +83,7 @@ class SubscriptionPrice(models.Model):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     interval = models.CharField(
-        max_length=25, 
+        max_length=50, 
         choices=SubscriptionInterval.choices, 
         default=SubscriptionInterval.MONTHLY
     )
@@ -120,7 +113,7 @@ class SubscriptionPrice(models.Model):
         return int(self.amount * 100)
     
     def save(self, *args, **kwargs) -> None:
-        if not self.stripe_id and self.product_stripe_id:
+        if (not self.stripe_id and self.product_stripe_id is not None):
             stripe_id = billing.create_price(
                 currency=self.currency,
                 unit_amount=self.strip_amount,
@@ -133,7 +126,7 @@ class SubscriptionPrice(models.Model):
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)
         if self.featured and self.subscription:
-            qs = Subscription.objects.filter(
+            qs = SubscriptionPrice.objects.filter(
                 subscription=self.subscription,
                 interval=self.interval
             ).exclude(id=self.id)
@@ -194,7 +187,6 @@ class UserSubscription(models.Model):
         if self.stripe_id:
             billing.cancel_subscription(self.stripe_id, reason="Subscription deleted")
         return super().delete(*args, **kwargs)
-
 
 def user_sub_post_save(sender, instance, *args, **kwargs):
     user_sub_instance = instance

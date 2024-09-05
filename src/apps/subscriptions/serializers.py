@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from common import billing
+from common.webhook_handlers import handle_subscription_deletion, handle_subscription_paused, handle_subscription_update
 from .models import SubscriptionPrice, Subscription, UserSubscription
 
 User = get_user_model()
@@ -229,30 +230,22 @@ class WebhookSerializer(serializers.Serializer):
             coupon = data['object']
         elif event_type == 'customer.created':
             customer = data['object']
-        elif event_type == 'customer.deleted':
-            customer = data['object']
-        elif event_type == 'customer.updated':
-            customer = data['object']
         elif event_type == 'customer.discount.created':
             discount = data['object']
         elif event_type == 'customer.discount.deleted':
             discount = data['object']
         elif event_type == 'customer.discount.updated':
             discount = data['object']
-        elif event_type == 'customer.source.created':
-            source = data['object']
-        elif event_type == 'customer.source.deleted':
-            source = data['object']
         elif event_type == 'customer.source.expiring':
-            source = data['object']
-        elif event_type == 'customer.source.updated':
             source = data['object']
         elif event_type == 'customer.subscription.created':
             subscription = data['object']
         elif event_type == 'customer.subscription.deleted':
             subscription = data['object']
+            handle_subscription_deletion(subscription)
         elif event_type == 'customer.subscription.paused':
             subscription = data['object']
+            handle_subscription_paused(subscription)
         elif event_type == 'customer.subscription.pending_update_applied':
             subscription = data['object']
         elif event_type == 'customer.subscription.pending_update_expired':
@@ -263,6 +256,7 @@ class WebhookSerializer(serializers.Serializer):
             subscription = data['object']
         elif event_type == 'customer.subscription.updated':
             subscription = data['object']
+            handle_subscription_update(subscription)
         elif event_type == 'invoice.created':
             invoice = data['object']
         elif event_type == 'invoice.deleted':

@@ -304,3 +304,20 @@ def get_stripe_webhook_event(request):
         data = request_data["data"]
         event_type = request_data["type"]
     return {"data": data, "event_type": event_type}
+
+
+def delete_subscription(product_id, raw: bool=False):
+    response = stripe.Product.delete(product_id)
+    if raw:
+        return response
+    return response.id
+
+
+def deactivate_price(price_id, raw: bool=False):
+    response = stripe.Price.modify(
+        price_id,
+        active=False,
+    )
+    if raw:
+        return response
+    return response.id

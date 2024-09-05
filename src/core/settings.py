@@ -32,6 +32,9 @@ ASGI_APPLICATION = "core.asgi.application"
 
 ENVIRONMENT_NAME = env("ENVIRONMENT_NAME", default="")
 
+BACKEND_DOMAIN_URL = env("BACKEND_DOMAIN_URL")
+FRONTEND_DOMAIN_URL = env("FRONTEND_DOMAIN_URL")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -359,7 +362,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CHECKOUT_SUCCESS_URL = env("CHECKOUT_SUCCESS_URL", default="http://localhost:3000/dashboard")
+CHECKOUT_SUCCESS_URL = env("CHECKOUT_SUCCESS_URL", default="http://localhost:3000/subscribe")
 CHECKOUT_CANCEL_URL = env("CHECKOUT_CANCEL_URL", default="http://localhost:3000/pricing")
 CUSTOMER_PORTAL_SESSION_RETURN_URL = env("CUSTOMER_PORTAL_SESSION_RETURN_URL", default="http://localhost:3000/dashboard")
 

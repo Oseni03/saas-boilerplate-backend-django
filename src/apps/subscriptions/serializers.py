@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 from common import billing
 from common.webhook_handlers import handle_subscription_deletion, handle_subscription_paused, handle_subscription_update
-from .models import SubscriptionPrice, Subscription, UserSubscription
+from .models import SubscriptionPrice, Subscription, SubscriptionStatus, UserSubscription
 
 User = get_user_model()
 
@@ -47,6 +47,8 @@ class SubscriptionPriceSerializer(serializers.ModelSerializer):
         return obj.get_interval_display()
     
     def get_subscription_subtitle(self, obj: SubscriptionPrice):
+        if not obj.subscription:
+            return ""
         return obj.subscription.subtitle
 
 
@@ -67,10 +69,8 @@ class CreateCheckoutSerializer(serializers.Serializer):
     def create(self, validated_data):
         price = validated_data["price"]
         customer_stripe_id = validated_data["user"].customer.stripe_id
-        success_url_path = settings.CHECKOUT_SUCCESS_URL
-        cancel_url_path = settings.CHECKOUT_CANCEL_URL
-        success_url = f"{settings.BASE_URL}{success_url_path}"
-        cancel_url= f"{settings.BASE_URL}{cancel_url_path}"
+        success_url = settings.CHECKOUT_SUCCESS_URL
+        cancel_url = settings.CHECKOUT_CANCEL_URL
         price_stripe_id = price.stripe_id
 
         url = billing.create_checkout_session(
@@ -108,8 +108,8 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         return obj.subscription.name
 
     def create(self, validated_data):
-        user = validated_data('user')
-        session_id = validated_data('session_id')
+        user = validated_data['user']
+        session_id = validated_data['session_id']
         checkout_data = billing.get_checkout_customer_plan(session_id)
         plan_id = checkout_data.pop('plan_id')
         customer_id = checkout_data.pop('customer_id')
@@ -128,7 +128,6 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         updated_sub_options = {
             "subscription": sub_obj,
             "stripe_id": sub_stripe_id,
-            "user_cancelled": False,
             **subscription_data,
         }
         try:

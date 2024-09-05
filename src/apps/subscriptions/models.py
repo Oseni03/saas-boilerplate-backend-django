@@ -58,6 +58,11 @@ class Subscription(models.Model):
             )
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        if self.stripe_id:
+            billing.delete_subscription(self.stripe_id)
+        super().delete(*args, **kwargs)
 
 
 class SubscriptionPrice(models.Model):

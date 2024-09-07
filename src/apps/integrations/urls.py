@@ -6,9 +6,9 @@ from . import views
 
 # Set up the router
 router = DefaultRouter()
-router.register(r'integrations', IntegrationViewSet, basename='integrations')
+router.register(r"", IntegrationViewSet, basename="integrations")
 
 urlpatterns = [
-    path("integrations/thirdparties/", views.ThirdpartyListView.as_view(), name="list-thirdparty"),
+    path("thirdparties/", views.ThirdpartyListView.as_view(), name="list-thirdparty"),
     path("", include(router.urls)),
 ]

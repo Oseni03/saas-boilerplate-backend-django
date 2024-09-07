@@ -9,10 +9,19 @@ from .models import Thirdparty, Integrations
 
 class ThirdpartySerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    is_connected = serializers.SerializerMethodField()
 
     class Meta:
         model = Thirdparty
-        fields = ("id", "name", "slug", "oauth_url")
+        fields = ("id", "name", "description", "is_connected", "slug", "oauth_url", "user")
+
+    def get_is_connected(self, obj: Thirdparty):
+        # Get the current user from the context (request)
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return obj.users.filter(id=request.user.id).exists()
+        return False
 
 
 class CreateIntegrationSerializer(serializers.ModelSerializer):
@@ -57,7 +66,9 @@ class CreateIntegrationSerializer(serializers.ModelSerializer):
         )
         validated_data["access_token"] = resp.get("access_token")
         validated_data["refresh_token"] = resp.get("refresh_token")
-        validated_data["expires_at"] =  convert_timezone_to_datetime(resp_tz)  # convert timezone to datatime
+        validated_data["expires_at"] = convert_timezone_to_datetime(
+            resp_tz
+        )  # convert timezone to datatime
         validated_data["webhook_url"] = resp.get("webhook_url")
         return super().create(validated_data)
 

@@ -8,8 +8,10 @@ import requests
 class Thirdparty(models.Model):
     id: str = hashid_field.HashidAutoField(primary_key=True)
     name = models.CharField(max_length=150)
+    description = models.TextField()
     auth_url = models.URLField()
     token_uri = models.URLField(null=True, blank=True)
+    revoke_uri = models.URLField(null=True, blank=True)
     client_ID = models.CharField(max_length=250)
     client_secret = models.CharField(max_length=250)
     scopes = models.TextField(help_text="coma separated scopes")
@@ -29,7 +31,7 @@ class Thirdparty(models.Model):
     def save(self, *args, **kwargs) -> None:
         if not self.slug:
             self.slug = slugify(self.name)
-        return super().save(**args, **kwargs)
+        return super().save(args, kwargs)
     
     @property
     def oauth_url(self) -> str:
@@ -76,7 +78,15 @@ class Integrations(models.Model):
     
     def revoke_access_token(self):
         # Assuming the third-party service supports token revocation at this endpoint
-        revoke_url = self.thirdparty.token_uri + "/revoke"
+        if not self.thirdparty.revoke_uri and self.thirdparty.token_uri is not None:
+            if self.thirdparty.token_uri.split("/")[-1] == "token":
+                revoke_url = self.thirdparty.token_uri.replace("token", "revoke")
+            else:
+                revoke_url = self.thirdparty.token_uri + "/revoke"
+        elif self.thirdparty.revoke_uri:
+            revoke_url = self.thirdparty.revoke_uri
+        else: 
+            return False
         data = {
             "token": self.access_token,
             "client_id": self.thirdparty.client_ID,

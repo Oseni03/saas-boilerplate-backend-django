@@ -359,6 +359,7 @@ SUBSCRIPTION_PERMISSIONS = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    "https://adequate-adequately-husky.ngrok-free.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -373,6 +374,7 @@ DJOSER = {
     "SOCIAL_AUTH_TOKEN_STRATEGY": 'djoser.social.token.jwt.TokenStrategy',
     "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": [
         "http://localhost:3000/auth/google", 
+        "https://adequate-adequately-husky.ngrok-free.app/auth/google"
     ]
 }
 

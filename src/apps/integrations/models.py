@@ -58,10 +58,33 @@ class Integrations(models.Model):
     webhook_url = models.CharField(max_length=255, null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
+    access_revoked = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     class Meta:
         models.UniqueConstraint(
             fields=["user", "thirdparty"], 
             name="unique_user_thirdparty",
         )
+    
+    def delete(self, *args, **kwargs):
+        if self.access_token or not self.access_revoked:
+            self.revoke_access_token()
+        super().delete(*args, **kwargs)
+    
+    def revoke_access_token(self):
+        # Assuming the third-party service supports token revocation at this endpoint
+        revoke_url = self.thirdparty.token_uri + "/revoke"
+        data = {
+            "token": self.access_token,
+            "client_id": self.thirdparty.client_ID,
+            "client_secret": self.thirdparty.client_secret,
+        }
+        response = requests.post(revoke_url, data=data)
+        if response.status_code == 200:
+            return True
+        else:
+            # Handle error case if token revocation fails
+            return False

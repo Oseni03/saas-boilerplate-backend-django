@@ -1,10 +1,7 @@
 from datetime import timedelta, timezone
-from hashid_field import rest
 from rest_framework import serializers
-
-from common.date_utils import convert_timezone_to_datetime
-
-from .models import Thirdparty, Integrations
+from hashid_field import rest
+from .models import Thirdparty, Integration
 
 
 class ThirdpartySerializer(serializers.ModelSerializer):
@@ -14,27 +11,36 @@ class ThirdpartySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thirdparty
-        fields = ("id", "name", "description", "is_connected", "slug", "oauth_url", "user")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "is_connected",
+            "slug",
+            "oauth_url",
+            "user",
+        )
 
     def get_is_connected(self, obj: Thirdparty):
-        # Get the current user from the context (request)
-        request = self.context.get('request', None)
-        if request and request.user.is_authenticated:
-            return obj.users.filter(id=request.user.id).exists()
-        return False
+        user = self.context["request"].user  # Get current user
+        return Integration.objects.filter(
+            thirdparty=obj, user=user, is_active=True
+        ).exists()
 
 
-class CreateIntegrationSerializer(serializers.ModelSerializer):
+class IntegrationSerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
-    thirdparty = serializers.PrimaryKeyRelatedField(
+    thirdparty = serializers.SlugRelatedField(
+        slug_field="slug",
         queryset=Thirdparty.objects.filter(is_active=True),
-        pk_field=rest.HashidSerializerCharField(),
+        write_only=True,
     )
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    code = serializers.CharField(write_only=True)
+    code = serializers.CharField(write_only=True, required=False)
+    oauth_url = serializers.SerializerMethodField()
 
     class Meta:
-        model = Integrations
+        model = Integration
         fields = (
             "id",
             "thirdparty",
@@ -44,38 +50,41 @@ class CreateIntegrationSerializer(serializers.ModelSerializer):
             "refresh_token",
             "webhook_url",
             "expires_at",
+            "oauth_url",
         )
         read_only_fields = (
             "access_token",
             "refresh_token",
             "webhook_url",
             "expires_at",
+            "oauth_url",
         )
+
+    def get_oauth_url(self, obj: Integration):
+        return obj.get("oauth_url")
 
     def create(self, validated_data):
-        thirdparty = validated_data["thirdparty"]
-        code = validated_data["code"]
+        thirdparty: Thirdparty = validated_data["thirdparty"]
+        code = validated_data.get("code", "")
+        user = validated_data["user"]
 
-        try:
-            resp = thirdparty.handle_oauth_callback(code)
-        except:
-            raise serializers.ValidationError("Invalid code")
-
-        resp_tz = timezone.now() + timedelta(
-            seconds=int(resp.get("expires_in", None) or resp.get("issued_at"))
+        integration, created = Integration.objects.get_or_create(
+            thirdparty=thirdparty, user=user
         )
-        validated_data["access_token"] = resp.get("access_token")
-        validated_data["refresh_token"] = resp.get("refresh_token")
-        validated_data["expires_at"] = convert_timezone_to_datetime(
-            resp_tz
-        )  # convert timezone to datatime
-        validated_data["webhook_url"] = resp.get("webhook_url")
-        return super().create(validated_data)
 
+        if not code and created:
+            return {"oauth_url": thirdparty.oauth_url}
+        else:
+            try:
+                resp = thirdparty.handle_oauth_callback(code)
+            except:
+                raise serializers.ValidationError("Invalid code")
 
-class IntegrationSerializer(serializers.ModelSerializer):
-    id = rest.HashidSerializerCharField(read_only=True)
+            integration.access_token = resp.get("access_token")
+            integration.refresh_token = resp.get("refresh_token")
+            integration.expires_at = timezone.now() + timedelta(
+                seconds=int(resp.get("expires_in", 3600))
+            )
+            integration.is_active = True
 
-    class Meta:
-        model = Integrations
-        fields = ("id", "thirdparty", "expires_at", "created", "updated")
+        return integration

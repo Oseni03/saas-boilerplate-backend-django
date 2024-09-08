@@ -1,92 +1,48 @@
-from rest_framework import generics, permissions, viewsets, status
-from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
-from .models import Thirdparty, Integrations
-from .serializers import (
-    ThirdpartySerializer,
-    IntegrationSerializer,
-    CreateIntegrationSerializer,
-)
+from .models import Thirdparty, Integration
+from .serializers import ThirdpartySerializer, IntegrationSerializer
 
 
-# Create your views here.
 class ThirdpartyListView(generics.ListAPIView):
     queryset = Thirdparty.objects.filter(is_active=True)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = ThirdpartySerializer
+    permission_classes = [IsAuthenticated]
 
 
-class IntegrationViewSet(viewsets.ModelViewSet):
+class IntegrationCreateView(generics.CreateAPIView):
+    queryset = Integration.objects.all()
     serializer_class = IntegrationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        if self.action == "create":
-            return CreateIntegrationSerializer
-        return super().get_serializer_class()
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        return super().post(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return Integrations.objects.filter(user=self.request.user)
 
-    @action(detail=True, methods=["post"])
-    def deactivate(self, request, pk=None):
-        integration = self.get_object()
-        if not integration.is_active:
-            return Response(
-                {"detail": "Integration is already deactivated."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+class IntegrationDeactivateView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        # Mark the integration as inactive
-        integration.is_active = False
-        integration.save()
-        return Response(
-            {"detail": "Integration deactivated successfully."},
-            status=status.HTTP_200_OK,
-        )
+    def post(self, request, slug):
+        """
+        Deactivate the user's integration for a thirdparty, 
+        either using the thirdparty's slug or ID.
+        """
+        thirdparty = get_object_or_404(Thirdparty, slug=slug)
 
-    @action(detail=True, methods=["post"])
-    def activate(self, request, pk=None):
-        integration = self.get_object()
-        if integration.is_active:
-            return Response(
-                {"detail": "Integration is already active."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if integration.access_revoked or not integration.access_token:
-            pass
-
-        # Reactivate the integration
-        integration.is_active = True
-        integration.save()
-        return Response(
-            {"detail": "Integration activated successfully."}, status=status.HTTP_200_OK
-        )
-
-    @action(detail=True, methods=["post"])
-    def revoke(self, request, pk=None):
-        integration = self.get_object()
-        if not integration.access_token:
-            return Response(
-                {"detail": "No access token available to revoke."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Revoke token
-        success = integration.revoke_access_token()
-        if success:
-            integration.access_token = None
+        # Get the integration between the user and the thirdparty
+        try:
+            integration = Integration.objects.get(thirdparty=thirdparty, user=request.user, is_active=True)
             integration.is_active = False
-            integration.access_revoked = True
+            integration.revoke_access_token()  # Revoke the token upon deactivation
             integration.save()
+            return Response({"message": "Integration deactivated"}, status=status.HTTP_200_OK)
+        except Integration.DoesNotExist:
             return Response(
-                {"detail": "Access token revoked and integration deactivated."},
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                {"detail": "Failed to revoke access token."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"error": "Integration not found or already inactive"},
+                status=status.HTTP_404_NOT_FOUND
             )

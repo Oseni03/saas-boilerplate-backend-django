@@ -1,14 +1,12 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import IntegrationViewSet
-
-from . import views
-
-# Set up the router
-router = DefaultRouter()
-router.register(r"", IntegrationViewSet, basename="integrations")
+from django.urls import path
+from .views import ThirdpartyListView, IntegrationCreateView, IntegrationDeactivateView
 
 urlpatterns = [
-    path("thirdparties/", views.ThirdpartyListView.as_view(), name="list-thirdparty"),
-    path("", include(router.urls)),
+    path("thirdparty/", ThirdpartyListView.as_view(), name="thirdparty-list"),
+    path("activate/", IntegrationCreateView.as_view(), name="integration-activate"),
+    path(
+        "deactivate/<slug:slug>/",
+        IntegrationDeactivateView.as_view(),
+        name="integration-deactivate",
+    ),
 ]

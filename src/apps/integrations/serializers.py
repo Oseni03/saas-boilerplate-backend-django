@@ -37,6 +37,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
     )
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     code = serializers.CharField(write_only=True, required=False)
+    state = serializers.CharField(write_only=True, required=False)
     oauth_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -46,6 +47,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
             "thirdparty",
             "user",
             "code",
+            "state",
             "access_token",
             "refresh_token",
             "webhook_url",
@@ -66,7 +68,12 @@ class IntegrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         thirdparty: Thirdparty = validated_data["thirdparty"]
         code = validated_data.get("code", "")
+        state = validated_data.get("state", "")
         user = validated_data["user"]
+
+        if state:
+            if state != thirdparty.state:
+                raise serializers.ValidationError("Invalid request")
 
         integration, created = Integration.objects.get_or_create(
             thirdparty=thirdparty, user=user

@@ -1,8 +1,10 @@
+import requests
+import random
+import string
 from django.conf import settings
 import hashid_field
 from django.db import models
 from django.utils.text import slugify
-import requests
 
 
 class Thirdparty(models.Model):
@@ -14,6 +16,7 @@ class Thirdparty(models.Model):
     revoke_uri = models.URLField(null=True, blank=True)
     client_ID = models.CharField(max_length=250)
     client_secret = models.CharField(max_length=250)
+    state = models.CharField(max_length=250, null=True, blank=True)
     scopes = models.TextField(help_text="Comma-separated scopes")
     slug = models.SlugField(null=True, blank=True, unique=True)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through="Integration")
@@ -31,12 +34,21 @@ class Thirdparty(models.Model):
     def save(self, *args, **kwargs) -> None:
         if not self.slug:
             self.slug = slugify(self.name)
+        if not self.state:
+            self.state = self.generate_state()
         super().save(*args, **kwargs)
+
+    def generate_state(self, length=32):
+        """Generate a cryptographically random state value."""
+        return "".join(
+            random.SystemRandom().choice(string.ascii_letters + string.digits)
+            for _ in range(length)
+        )
 
     @property
     def oauth_url(self) -> str:
         redirect_url = settings.INTEGRATION_REDIRECT_URL
-        return f"{self.auth_url}?response_type=code&client_id={self.client_ID}&redirect_uri={redirect_url}&access_type=offline&prompt=consent&scope={self.scopes}"
+        return f"{self.auth_url}?response_type=code&client_id={self.client_ID}&redirect_uri={redirect_url}&access_type=offline&prompt=consent&scope={self.scopes}&state={self.state}"
 
     def handle_oauth_callback(self, code):
         redirect_url = settings.INTEGRATION_REDIRECT_URL

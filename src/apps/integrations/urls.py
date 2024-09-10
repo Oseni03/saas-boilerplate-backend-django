@@ -10,7 +10,7 @@ urlpatterns = [
     ),
     path("callback/", IntegrationOAuthCallback.as_view(), name="oauth-callback"),
     path(
-        "deactivate/<slug:slug>/",
+        "deactivate/<pk>/",
         IntegrationDeactivateView.as_view(),
         name="integration-deactivate",
     ),

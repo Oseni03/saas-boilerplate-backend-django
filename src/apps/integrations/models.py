@@ -79,7 +79,7 @@ class Integration(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def delete(self, *args, **kwargs):
-        if self.access_token and not self.access_revoked:
+        if self.access_token:
             self.revoke_access_token()
         super().delete(*args, **kwargs)
 

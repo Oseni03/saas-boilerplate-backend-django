@@ -1,12 +1,11 @@
 from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
-from django.shortcuts import get_object_or_404, redirect
 from requests_oauthlib import OAuth2Session
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Thirdparty, Integration
 from .serializers import (
@@ -23,6 +22,8 @@ class ThirdpartyListView(generics.ListAPIView):
 
 
 class IntegrationActivation(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, slug, **kwargs):
         try:
             redirect_uri = settings.INTEGRATION_REDIRECT_URL

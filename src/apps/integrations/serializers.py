@@ -1,4 +1,3 @@
-from datetime import timedelta, timezone
 from rest_framework import serializers
 from hashid_field import rest
 from .models import Thirdparty, Integration
@@ -7,6 +6,7 @@ from .models import Thirdparty, Integration
 class ThirdpartySerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
     is_connected = serializers.SerializerMethodField()
+    integration_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Thirdparty
@@ -17,11 +17,19 @@ class ThirdpartySerializer(serializers.ModelSerializer):
             "is_connected",
             "slug",
             "oauth_url",
+            "integration_id"
         )
 
     def get_is_connected(self, obj: Thirdparty):
         user = self.context["request"].user  # Get current user
         return Integration.objects.filter(thirdparty=obj, user=user).exists()
+
+    def get_integration_id(self, obj: Thirdparty):
+        user = self.context["request"].user  # Get current user
+        integrations = Integration.objects.filter(thirdparty=obj, user=user)
+        if integrations.exists():
+            return str(integrations.first().id)
+        return None
 
 
 class IntegrationSerializer(serializers.ModelSerializer):
@@ -60,37 +68,6 @@ class IntegrationSerializer(serializers.ModelSerializer):
 
     def get_oauth_url(self, obj: Integration):
         return obj.get("oauth_url")
-
-    def create(self, validated_data):
-        thirdparty: Thirdparty = validated_data["thirdparty"]
-        code = validated_data.get("code", "")
-        state = validated_data.get("state", "")
-        user = validated_data["user"]
-
-        if state:
-            if state != thirdparty.state:
-                raise serializers.ValidationError("Invalid request")
-
-        integration, created = Integration.objects.get_or_create(
-            thirdparty=thirdparty, user=user
-        )
-
-        if not code and created:
-            return {"oauth_url": thirdparty.oauth_url}
-        else:
-            try:
-                resp = thirdparty.handle_oauth_callback(code)
-            except:
-                raise serializers.ValidationError("Invalid code")
-
-            integration.access_token = resp.get("access_token")
-            integration.refresh_token = resp.get("refresh_token")
-            integration.expires_at = timezone.now() + timedelta(
-                seconds=int(resp.get("expires_in", 3600))
-            )
-            integration.is_active = True
-
-        return integration
 
 
 class OAuthCallbackSerializer(serializers.Serializer):

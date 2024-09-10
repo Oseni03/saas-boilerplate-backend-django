@@ -69,9 +69,10 @@ class Integration(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="integrations"
     )
-    access_token = models.CharField(max_length=255)
-    refresh_token = models.CharField(max_length=255)
+    access_token = models.TextField()
+    refresh_token = models.TextField(null=True, blank=True)
     webhook_url = models.CharField(max_length=255, null=True, blank=True)
+    id_token = models.TextField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True)

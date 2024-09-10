@@ -8,7 +8,7 @@ urlpatterns = [
         IntegrationActivation.as_view(),
         name="integration-activate",
     ),
-    re_path(r"callback/?$", IntegrationOAuthCallback.as_view(), name="oauth-callback"),
+    path("callback/", IntegrationOAuthCallback.as_view(), name="oauth-callback"),
     path(
         "deactivate/<slug:slug>/",
         IntegrationDeactivateView.as_view(),

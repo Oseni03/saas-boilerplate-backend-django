@@ -91,3 +91,8 @@ class IntegrationSerializer(serializers.ModelSerializer):
             integration.is_active = True
 
         return integration
+
+
+class OAuthCallbackSerializer(serializers.Serializer):
+    state = serializers.CharField()
+    code = serializers.CharField()

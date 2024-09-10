@@ -1,13 +1,19 @@
+from datetime import timedelta
 from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from requests_oauthlib import OAuth2Session
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import Thirdparty, Integration
-from .serializers import ThirdpartySerializer, IntegrationSerializer
+from .serializers import (
+    ThirdpartySerializer,
+    IntegrationSerializer,
+    OAuthCallbackSerializer,
+)
 
 
 class ThirdpartyListView(generics.ListAPIView):
@@ -27,61 +33,68 @@ class IntegrationActivation(APIView):
                 scope=platform.scopes.split(","),
             )  # Assumes scopes are stored as a comma-separated string
 
-            authorization_url, state = oauth.authorization_url(
-                platform.auth_url
-            )
+            authorization_url, state = oauth.authorization_url(platform.auth_url)
 
             # Optionally, save `state` if you need to verify it later
             request.session["oauth_state"] = state
             request.session["thirdparty_slug"] = slug
 
-            return Response({"oauth_url": authorization_url}, status=status.HTTP_201_CREATED)
+            return Response(
+                {"oauth_url": authorization_url}, status=status.HTTP_201_CREATED
+            )
         except Thirdparty.DoesNotExist:
             return Response({"error": "Platform not found"}, status=404)
 
 
-class IntegrationOAuthCallback(APIView):
+class IntegrationOAuthCallback(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = OAuthCallbackSerializer
 
-    def get(self, request, **kwargs):
+    def post(self, request, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(
+            raise_exception=True
+        )  # Using raise_exception=True ensures validation is strict
+
+        state = serializer.validated_data["state"]
+        code = serializer.validated_data["code"]
+
+        if state != request.session.get("oauth_state"):
+            return Response(
+                {"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Retrieve slug and platform data from session
+        slug = request.session.get("thirdparty_slug")
+        if not slug:
+            return Response({"error": "Session has expired or is invalid"}, status=400)
+
         try:
-            redirect_uri = settings.INTEGRATION_REDIRECT_URL
-            slug = request.session["thirdparty_slug"]
             thirdparty = Thirdparty.objects.get(slug=slug)
-            oauth = OAuth2Session(
-                client_id=thirdparty.client_ID,
-                redirect_uri=redirect_uri,
-                state=request.session["oauth_state"],
-            )
-
-            # Exchange the authorization code for tokens
-            token = oauth.fetch_token(
-                thirdparty.token_uri,
-                authorization_response=request.build_absolute_uri(),
-                client_secret=thirdparty.client_secret,
-            )
-
-            # Save tokens to the database
-            user_integration, created = Integration.objects.get_or_create(
-                user=request.user,
-                thirdparty=thirdparty,
-                defaults={
-                    "access_token": token["access_token"],
-                    "refresh_token": token.get("refresh_token"),
-                    "expires_at": token["expires_at"],
-                },
-            )
-
-            if not created:
-                # Update the token if the integration already exists
-                user_integration.access_token = token["access_token"]
-                user_integration.refresh_token = token.get("refresh_token")
-                user_integration.expires_at = token["expires_at"]
-                user_integration.save()
-
-            return Response({"message": "Integration successful"})
         except Thirdparty.DoesNotExist:
             return Response({"error": "Platform not found"}, status=404)
+
+        try:
+            # Exchange authorization code for tokens
+            token = thirdparty.handle_oauth_callback(code)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=400
+            )  # Handle token exchange failure
+
+        # Use update_or_create for atomic operations
+        Integration.objects.update_or_create(
+            user=request.user,
+            thirdparty=thirdparty,
+            defaults={
+                "access_token": token["access_token"],
+                "refresh_token": token.get("refresh_token", ""),
+                "id_token": token.get("id_token", ""),
+                "expires_at": timezone.now() + timedelta(seconds=token["expires_in"]),
+            },
+        )
+
+        return Response({"message": "Integration successful"})
 
 
 class IntegrationDeactivateView(generics.DestroyAPIView):

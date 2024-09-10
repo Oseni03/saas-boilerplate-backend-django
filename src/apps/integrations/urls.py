@@ -1,9 +1,14 @@
-from django.urls import path
-from .views import ThirdpartyListView, IntegrationCreateView, IntegrationDeactivateView
+from django.urls import path, re_path
+from .views import ThirdpartyListView, IntegrationActivation, IntegrationDeactivateView, IntegrationOAuthCallback
 
 urlpatterns = [
     path("thirdparty/", ThirdpartyListView.as_view(), name="thirdparty-list"),
-    path("activate/", IntegrationCreateView.as_view(), name="integration-activate"),
+    path(
+        "activate/<slug:slug>/",
+        IntegrationActivation.as_view(),
+        name="integration-activate",
+    ),
+    re_path(r"callback/?$", IntegrationOAuthCallback.as_view(), name="oauth-callback"),
     path(
         "deactivate/<slug:slug>/",
         IntegrationDeactivateView.as_view(),

@@ -6,7 +6,6 @@ from .models import Thirdparty, Integration
 
 class ThirdpartySerializer(serializers.ModelSerializer):
     id = rest.HashidSerializerCharField(read_only=True)
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     is_connected = serializers.SerializerMethodField()
 
     class Meta:
@@ -18,14 +17,11 @@ class ThirdpartySerializer(serializers.ModelSerializer):
             "is_connected",
             "slug",
             "oauth_url",
-            "user",
         )
 
     def get_is_connected(self, obj: Thirdparty):
         user = self.context["request"].user  # Get current user
-        return Integration.objects.filter(
-            thirdparty=obj, user=user, is_active=True
-        ).exists()
+        return Integration.objects.filter(thirdparty=obj, user=user).exists()
 
 
 class IntegrationSerializer(serializers.ModelSerializer):

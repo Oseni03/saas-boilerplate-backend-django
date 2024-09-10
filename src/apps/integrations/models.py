@@ -73,18 +73,9 @@ class Integration(models.Model):
     refresh_token = models.CharField(max_length=255)
     webhook_url = models.CharField(max_length=255, null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
-    access_revoked = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "thirdparty"], name="unique_user_thirdparty"
-            )
-        ]
 
     def delete(self, *args, **kwargs):
         if self.access_token and not self.access_revoked:

@@ -9,4 +9,4 @@ class ThirdpartyAdmin(admin.ModelAdmin):
 
 @admin.register(Integration)
 class IntegrationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'thirdparty', 'is_active', 'access_revoked')
+    list_display = ('id', 'user', 'thirdparty')

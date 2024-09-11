@@ -1,6 +1,8 @@
 from hashid_field import rest as hidrest
 from rest_framework import serializers
 
+from apps.users.models import UserProfile
+
 from . import models
 
 
@@ -44,3 +46,10 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
             "sms_notification", 
             "updated_at"
         )
+    
+    def validate_push_notification(self, value):
+        user = self.context["request"].user
+        profile = UserProfile.objects.get(user=user)
+        if value is True and not profile.device_token:
+            raise serializers.ValidationError("Setup push notification")
+        return value

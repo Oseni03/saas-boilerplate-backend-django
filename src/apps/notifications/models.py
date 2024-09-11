@@ -12,6 +12,7 @@ from . import managers
 
 class NotificationType(models.TextChoices):
     UPDATE_PROFILE = "UPDATE_PROFILE", _("Update Profile")
+    DEFAULT = "DEFAULT", _("Default")
 
 
 class Notification(models.Model):
@@ -23,7 +24,7 @@ class Notification(models.Model):
     created_at: datetime.datetime = models.DateTimeField(auto_now_add=True)
     read_at: Optional[datetime.datetime] = models.DateTimeField(null=True, blank=True)
 
-    data: dict = models.JSONField(default=dict, null=True)
+    data: dict = models.JSONField(default=dict, null=True, blank=True)
 
     issuer: settings.AUTH_USER_MODEL = models.ForeignKey( # type: ignore
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name="notifications_issued"

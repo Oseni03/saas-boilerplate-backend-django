@@ -15,74 +15,76 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 def create_customer(email: str, metadata: dict, raw=False):
     response = stripe.Customer.create(
-        email=email, 
+        email=email,
         metadata=metadata,
     )
     if raw:
         return response
-    return response.id # stripe_id
+    return response.id  # stripe_id
 
 
 def create_product(name: str, metadata: dict, raw=False):
     response = stripe.Product.create(
-        name=name, 
+        name=name,
         metadata=metadata,
     )
     if raw:
         return response
-    return response.id # stripe_id
+    return response.id  # stripe_id
 
 
 def create_price(
-        currency: str, 
-        unit_amount: int, 
-        interval: str, 
-        trial_period_days,
-        product: str, 
-        metadata: dict, 
-        raw=False
-    ): 
+    currency: str,
+    unit_amount: int,
+    interval: str,
+    trial_period_days,
+    product: str,
+    metadata: dict,
+    raw=False,
+):
     response = stripe.Price.create(
-        currency=currency, 
-        unit_amount=unit_amount, 
+        currency=currency,
+        unit_amount=unit_amount,
         recurring={
             "interval": interval,
             "trial_period_days": trial_period_days,
-        }, 
+        },
         product=product,
         metadata=metadata,
     )
     if raw:
         return response
-    return response.id # stripe_id
+    return response.id  # stripe_id
 
 
 def create_checkout_session(
-    customer_id, 
-    success_url="", 
-    cancel_url="", 
-    price_stripe_id="", 
+    customer_id,
+    success_url="",
+    cancel_url="",
+    price_stripe_id="",
     trial_period_days=0,
-    raw=True
+    raw=True,
 ):
     if not success_url.endswith("?session_id={CHECKOUT_SESSION_ID}"):
         success_url = f"{success_url}" + "?session_id={CHECKOUT_SESSION_ID}"
-    
+
     if trial_period_days > 0:
-        response= stripe.checkout.Session.create(
+        response = stripe.checkout.Session.create(
             customer=customer_id,
             success_url=success_url,
             cancel_url=cancel_url,
             line_items=[{"price": price_stripe_id, "quantity": 1}],
             subscription_data={
-                "trial_settings": {"end_behavior": {"missing_payment_method": "cancel"}},
+                "trial_settings": {
+                    "end_behavior": {"missing_payment_method": "cancel"}
+                },
                 "trial_period_days": trial_period_days,
             },
             payment_method_collection="if_required",
             mode="subscription",
         )
     else:
-        response= stripe.checkout.Session.create(
+        response = stripe.checkout.Session.create(
             customer=customer_id,
             success_url=success_url,
             cancel_url=cancel_url,
@@ -96,8 +98,12 @@ def create_checkout_session(
 
 def serialize_subscription_data(subscription_response):
     status = subscription_response.status
-    current_period_start = date_utils.timestamp_as_datetime(subscription_response.current_period_start)
-    current_period_end = date_utils.timestamp_as_datetime(subscription_response.current_period_end)
+    current_period_start = date_utils.timestamp_as_datetime(
+        subscription_response.current_period_start
+    )
+    current_period_end = date_utils.timestamp_as_datetime(
+        subscription_response.current_period_end
+    )
     cancel_at_period_end = subscription_response.cancel_at_period_end
     return {
         "current_period_start": current_period_start,
@@ -108,9 +114,7 @@ def serialize_subscription_data(subscription_response):
 
 
 def get_checkout_session(stripe_id, raw=True):
-    response =  stripe.checkout.Session.retrieve(
-            stripe_id
-        )
+    response = stripe.checkout.Session.retrieve(stripe_id)
     if raw:
         return response
     return response.url
@@ -129,43 +133,54 @@ def get_checkout_customer_plan(session_id):
         "customer_id": customer_id,
         "plan_id": sub_plan.id,
         "sub_stripe_id": sub_stripe_id,
-       **subscription_data,
+        **subscription_data,
     }
     return data
 
 
-def create_subscription(customer_id: str, price_id: str, trial_period_days: int=0, raw=False):
+def create_subscription(
+    customer_id: str, price_id: str, trial_period_days: int = 0, raw=False
+):
     if trial_period_days > 0:
         subscription = stripe.Subscription.create(
             customer=customer_id,
-            items=[{
-                "price": price_id,
-            }],
+            items=[
+                {
+                    "price": price_id,
+                }
+            ],
             trial_period_days=trial_period_days,
             payment_behavior="default_incomplete",
             payment_settings={"save_default_payment_method": "on_subscription"},
-            trial_settings={"end_behavior": {"missing_payment_method": "create_invoice"}}, # or "cancel" or "pause"
+            trial_settings={
+                "end_behavior": {"missing_payment_method": "create_invoice"}
+            },  # or "cancel" or "pause"
             expand=["latest_invoice.payment_intent"],
         )
     else:
         subscription = stripe.Subscription.create(
             customer=customer_id,
-            items=[{
-                "price": price_id,
-            }],
+            items=[
+                {
+                    "price": price_id,
+                }
+            ],
             payment_behavior="default_incomplete",
             payment_settings={"save_default_payment_method": "on_subscription"},
             expand=["latest_invoice.payment_intent"],
         )
     if raw:
         return subscription
-    
-    current_period_start = date_utils.timestamp_as_datetime(subscription.current_period_start)
-    current_period_end = date_utils.timestamp_as_datetime(subscription.current_period_end)
+
+    current_period_start = date_utils.timestamp_as_datetime(
+        subscription.current_period_start
+    )
+    current_period_end = date_utils.timestamp_as_datetime(
+        subscription.current_period_end
+    )
 
     response = {
-        "stripe_id": subscription.id, 
-        # "client_secret": subscription.latest_invoice.payment_intent.client_secret,
+        "stripe_id": subscription.id,
         # "payment_method": subscription.latest_invoice.payment_intent.payment_method,
         "current_period_start": current_period_start,
         "current_period_end": current_period_end,
@@ -180,48 +195,48 @@ def update_subscription(stripe_id: str, new_price_id: str, raw=False):
     response = stripe.Subscription.modify(
         stripe_id,
         cancel_at_period_end=False,
-        items=[{
-            "id": subscription["items"]["data"][0].id,
-            "price": new_price_id,
-        }]
+        items=[
+            {
+                "id": subscription["items"]["data"][0].id,
+                "price": new_price_id,
+            }
+        ],
     )
     if raw:
         return response
-    
-    current_period_start = date_utils.timestamp_as_datetime(subscription.current_period_start)
-    current_period_end = date_utils.timestamp_as_datetime(subscription.current_period_end)
+
+    current_period_start = date_utils.timestamp_as_datetime(
+        subscription.current_period_start
+    )
+    current_period_end = date_utils.timestamp_as_datetime(
+        subscription.current_period_end
+    )
 
     return {
-        "stripe_id": response.id, 
-        # "client_secret": response.latest_invoice.payment_intent.client_secret,
+        "stripe_id": response.id,
         # "payment_method": response.latest_invoice.payment_intent.payment_method,
         "current_period_start": current_period_start,
-        "current_period_end": current_period_end, 
+        "current_period_end": current_period_end,
         "status": subscription.status,
     }
 
 
 def cancel_subscription(
-        stripe_id: str, reason: str="", 
-        cancel_at_period_end: bool=False, 
-        feedback: str="other", raw=False
-    ):
+    stripe_id: str,
+    reason: str = "",
+    cancel_at_period_end: bool = False,
+    feedback: str = "other",
+    raw=False,
+):
     if cancel_at_period_end:
         response = stripe.Subscription.modify(
             stripe_id,
             cancel_at_period_end=cancel_at_period_end,
-            cancellation_details={
-                "comment": reason,
-                "feedback": feedback
-            }
+            cancellation_details={"comment": reason, "feedback": feedback},
         )
     else:
         response = stripe.Subscription.cancel(
-            stripe_id,
-            cancellation_details={
-                "comment": reason,
-                "feedback": feedback
-            }
+            stripe_id, cancellation_details={"comment": reason, "feedback": feedback}
         )
     if raw:
         return response
@@ -249,28 +264,21 @@ def get_payment_method(payment_id, raw=False):
 
 
 def get_customer_active_subscriptions(customer_stripe_id):
-    response = stripe.Subscription.list(
-        customer=customer_stripe_id,
-        status="active"
-    )
+    response = stripe.Subscription.list(customer=customer_stripe_id, status="active")
     print(response)
     return response
 
 
 def get_subscription(stripe_id, raw=True):
-    response =  stripe.Subscription.retrieve(
-            stripe_id
-        )
+    response = stripe.Subscription.retrieve(stripe_id)
     if raw:
         return response
     return serialize_subscription_data(response)
 
 
 def create_customer_portal(
-        customer_stripe_id: str, 
-        return_url: str="", 
-        raw: bool=False
-    ):
+    customer_stripe_id: str, return_url: str = "", raw: bool = False
+):
     session = stripe.billing_portal.Session.create(
         customer=customer_stripe_id,
         return_url=return_url,
@@ -290,15 +298,13 @@ def get_stripe_webhook_event(request):
         signature = request.headers.get("stripe-signature")
         try:
             event = stripe.Webhook.construct_event(
-                payload=request.data,
-                sig_header=signature,
-                secret=webhook_secret
+                payload=request.data, sig_header=signature, secret=webhook_secret
             )
             print(event)
             data = event["data"]
         except Exception as e:
             return e
-        
+
         event_type = event["type"]
     else:
         data = request_data["data"]
@@ -306,14 +312,14 @@ def get_stripe_webhook_event(request):
     return {"data": data, "event_type": event_type}
 
 
-def delete_subscription(product_id, raw: bool=False):
+def delete_subscription(product_id, raw: bool = False):
     response = stripe.Product.delete(product_id)
     if raw:
         return response
     return response.id
 
 
-def deactivate_price(price_id, raw: bool=False):
+def deactivate_price(price_id, raw: bool = False):
     response = stripe.Price.modify(
         price_id,
         active=False,

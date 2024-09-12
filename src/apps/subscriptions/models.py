@@ -172,7 +172,6 @@ class UserSubscription(models.Model):
     )
 
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
-    client_secret = models.CharField(max_length=120, null=True, blank=True)
 
     current_period_start = models.DateTimeField(
         auto_now=False, auto_now_add=False, null=True, blank=True

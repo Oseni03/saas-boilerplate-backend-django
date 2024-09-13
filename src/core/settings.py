@@ -26,7 +26,7 @@ env = environ.Env(
     DJANGO_DEBUG=(bool, False)
 )
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.venv'))
+environ.Env.read_env(os.path.join(BASE_DIR, ".venv"))
 
 ASGI_APPLICATION = "core.asgi.application"
 
@@ -66,7 +66,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "social_django",
     "whitenoise",
-    'channels',
+    "channels",
     "django_filters",
     "djoser",
 ]
@@ -95,9 +95,9 @@ MIDDLEWARE = [
     "common.middleware.ManageCookiesMiddleware",
     "common.middleware.SetAuthTokenCookieMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -130,32 +130,32 @@ TEMPLATES = [
 PASSWORD_HASHERS = env.list(
     "DJANGO_PASSWORD_HASHERS",
     default=[
-        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-        'django.contrib.auth.hashers.Argon2PasswordHasher',
-        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+        "django.contrib.auth.hashers.Argon2PasswordHasher",
+        "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
     ],
 )
 
 WSGI_APPLICATION = "core.wsgi.application"
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': env('DJANGO_LOG_LEVEL', default='INFO'),
+    "root": {
+        "handlers": ["console"],
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
     },
-    'loggers': {
-        '*': {
-            'handlers': ['console'],
-            'level': env('DJANGO_LOG_LEVEL', default='INFO'),
-            'propagate': False,
+    "loggers": {
+        "*": {
+            "handlers": ["console"],
+            "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+            "propagate": False,
         },
     },
 }
@@ -248,8 +248,8 @@ STORAGES = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -259,9 +259,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.google.GoogleOAuth2',
+    "social_core.backends.google.GoogleOAuth2",
     # 'social_core.backends.facebook.FacebookOAuth2',
-    'django.contrib.auth.backends.ModelBackend',
+    "django.contrib.auth.backends.ModelBackend",
 )
 
 LOCALE_PATHS = []
@@ -270,36 +270,40 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.utils.custom_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'apps.users.authentication.CustomJWTAuthentication',
+        "apps.users.authentication.CustomJWTAuthentication",
         # 'rest_framework.authentication.SessionAuthentication',
     ),
     "DEFAULT_THROTTLE_RATES": {"anon": "100/day"},
-    "DEFAULT_FILTER_BACKENDS": (
-        "django_filters.rest_framework.DjangoFilterBackend",
-    )
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=env.int('ACCESS_TOKEN_LIFETIME_MINUTES', default=60)),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=env.int('REFRESH_TOKEN_LIFETIME_DAYS', default=7)),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(
+        minutes=env.int("ACCESS_TOKEN_LIFETIME_MINUTES", default=60)
+    ),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(
+        days=env.int("REFRESH_TOKEN_LIFETIME_DAYS", default=7)
+    ),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
-AUTH_ACCESS_COOKIE = 'access'
-AUTH_REFRESH_COOKIE = 'refresh'
+AUTH_ACCESS_COOKIE = "access"
+AUTH_REFRESH_COOKIE = "refresh"
 AUTH_REFRESH_PATH = reverse_lazy("jwt_token_refresh")
-AUTH_REFRESH_LOGOUT_COOKIE = 'refresh_logout'
+AUTH_REFRESH_LOGOUT_COOKIE = "refresh_logout"
 AUTH_REFRESH_LOGOUT_PATH = reverse_lazy("logout")
 AUTH_COOKIE_MAX_AGE = 3600 * 24 * 14  # 14 days
-AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default='True')
+AUTH_COOKIE_SECURE = env("AUTH_COOKIE_SECURE", default="True")
 AUTH_COOKIE_HTTP_ONLY = True
-AUTH_COOKIE_PATH = '/'
-AUTH_COOKIE_SAMESITE = 'None'
+AUTH_COOKIE_PATH = "/"
+AUTH_COOKIE_SAMESITE = "None"
 
 SWAGGER_SETTINGS = {
-    'DEFAULT_INFO': 'config.urls_api.api_info',
-    "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
+    "DEFAULT_INFO": "config.urls_api.api_info",
+    "SECURITY_DEFINITIONS": {
+        "api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}
+    },
 }
 
 HASHID_FIELD_SALT = env("HASHID_FIELD_SALT")
@@ -313,7 +317,12 @@ STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 
 SUBSCRIPTION_TRIAL_PERIOD_DAYS = env("SUBSCRIPTION_TRIAL_PERIOD_DAYS", default=7)
 
-NOTIFICATIONS_STRATEGIES = ["InAppNotificationStrategy", "EmailNotificationStrategy", "SMSNotificationStrategy", "PushNotificationStrategy"]
+NOTIFICATIONS_STRATEGIES = [
+    "InAppNotificationStrategy",
+    "EmailNotificationStrategy",
+    "SMSNotificationStrategy",
+    "PushNotificationStrategy",
+]
 
 # WEB_SOCKET_API_ENDPOINT_URL = env("WEB_SOCKET_API_ENDPOINT_URL", default="")
 
@@ -323,13 +332,17 @@ CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=[])
 RATELIMIT_IP_META_KEY = "common.utils.get_client_ip"
 
 OTP_AUTH_ISSUER_NAME = env("OTP_AUTH_ISSUER_NAME", default="SaaS Boilerplate")
-OTP_AUTH_TOKEN_COOKIE = 'otp_auth_token'
-OTP_AUTH_TOKEN_LIFETIME_MINUTES = datetime.timedelta(minutes=env.int('OTP_AUTH_TOKEN_LIFETIME_MINUTES', default=5))
+OTP_AUTH_TOKEN_COOKIE = "otp_auth_token"
+OTP_AUTH_TOKEN_LIFETIME_MINUTES = datetime.timedelta(
+    minutes=env.int("OTP_AUTH_TOKEN_LIFETIME_MINUTES", default=5)
+)
 OTP_VALIDATE_PATH = "/auth/validate-otp"
 
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
 
-UPLOADED_DOCUMENT_SIZE_LIMIT = env.int("UPLOADED_DOCUMENT_SIZE_LIMIT", default=10 * 1024 * 1024)
+UPLOADED_DOCUMENT_SIZE_LIMIT = env.int(
+    "UPLOADED_DOCUMENT_SIZE_LIMIT", default=10 * 1024 * 1024
+)
 USER_DOCUMENTS_NUMBER_LIMIT = env.int("USER_DOCUMENTS_NUMBER_LIMIT", default=10)
 
 REDIS_CONNECTION = f'{env("REDIS_CONNECTION")}/0'
@@ -353,29 +366,35 @@ SUBSCRIPTION_GROUPS = env("SUBSCRIPTION_GROUPS")
 SUBSCRIPTION_PERMISSIONS = [
     ("advanced", "Advanced Perm"),
     ("pro", "Pro Perm"),
-    ("basic", "Basic Perm")
+    ("basic", "Basic Perm"),
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "https://adequate-adequately-husky.ngrok-free.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CHECKOUT_SUCCESS_URL = env("CHECKOUT_SUCCESS_URL", default="http://localhost:3000/subscribe")
-CHECKOUT_CANCEL_URL = env("CHECKOUT_CANCEL_URL", default="http://localhost:3000/pricing")
-CUSTOMER_PORTAL_SESSION_RETURN_URL = env("CUSTOMER_PORTAL_SESSION_RETURN_URL", default="http://localhost:3000/dashboard")
+CHECKOUT_SUCCESS_URL = env(
+    "CHECKOUT_SUCCESS_URL", default="http://localhost:3000/subscribe"
+)
+CHECKOUT_CANCEL_URL = env(
+    "CHECKOUT_CANCEL_URL", default="http://localhost:3000/pricing"
+)
+CUSTOMER_PORTAL_SESSION_RETURN_URL = env(
+    "CUSTOMER_PORTAL_SESSION_RETURN_URL", default="http://localhost:3000/dashboard"
+)
 
 INTEGRATION_REDIRECT_URL = env("INTEGRATION_REDIRECT_URL")
 
 # DJOSER SOCIAL AUTH CONFIGURATIONS
 DJOSER = {
-    "SOCIAL_AUTH_TOKEN_STRATEGY": 'djoser.social.token.jwt.TokenStrategy',
+    "SOCIAL_AUTH_TOKEN_STRATEGY": "djoser.social.token.jwt.TokenStrategy",
     "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": [
-        "http://localhost:3000/auth/google", 
-        "https://adequate-adequately-husky.ngrok-free.app/auth/google"
-    ]
+        "http://localhost:3000/auth/google",
+        "https://adequate-adequately-husky.ngrok-free.app/auth/google",
+    ],
 }
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env("GOOGLE_CLIENT_ID")

@@ -10,6 +10,7 @@ auth_patterns = [
     path("login/", views.CookieTokenObtainView.as_view(), name="login"),
     path("register/", views.SignUpView.as_view(), name="register"),
     path("activate/<str:user>/<token>/", views.ConfirmEmailView.as_view(), name="confirm-email"),
+    path("activate/resend/", views.ResendAccountActivationView.as_view(), name="resend-confirm-email"),
     path("password-reset/", views.PasswordResetView.as_view(), name="password-reset"),
     path("password-reset/confirm/<str:user>/<token>/", views.PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
     path("validate-otp/", views.ValidateOTPView.as_view(), name="validate-otp"),

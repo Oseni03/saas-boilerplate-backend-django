@@ -5,6 +5,7 @@ from rest_framework_simplejwt import views as jwt_views, tokens as jwt_tokens
 from rest_framework_simplejwt.views import TokenViewBase
 from djoser.social.views import ProviderAuthView
 
+from apps.users import notifications, tokens
 from common import ratelimit
 
 from .models import UserProfile
@@ -27,7 +28,7 @@ class CurrentUserView(generics.GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def delete(self, request, *args, **kwargs):
         signals.account_deactivated_signal.send(models.User, instance=request.user)
         return Response({}, status=status.HTTP_204_NO_CONTENT)
@@ -75,7 +76,9 @@ class CookieTokenObtainView(jwt_views.TokenObtainPairView):
             utils.set_auth_cookie(
                 response,
                 {
-                    settings.OTP_AUTH_TOKEN_COOKIE: serializer.data.get("otp_auth_token"),
+                    settings.OTP_AUTH_TOKEN_COOKIE: serializer.data.get(
+                        "otp_auth_token"
+                    ),
                 },
             )
         else:
@@ -96,20 +99,12 @@ class SignUpView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid(raise_exception=False):
-            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            utils.reset_auth_cookie(response)
-            return response
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
+        user_id = serializer.data.get("id")
+        request.session["user_id"] = user_id
         response = Response(serializer.data, status=status.HTTP_200_OK)
-
-        utils.set_auth_cookie(
-            response,
-            {
-                settings.AUTH_ACCESS_COOKIE: serializer.data.get("access"),
-                settings.AUTH_REFRESH_COOKIE: serializer.data.get("refresh"),
-            },
-        )
         return response
 
 
@@ -215,12 +210,12 @@ class DisableOTPView(generics.GenericAPIView):
 
 class CustomTokenVerifyView(jwt_views.TokenVerifyView):
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request, *args, **kwargs):
         access_token = request.COOKIES.get(settings.AUTH_ACCESS_COOKIE)
 
         if access_token:
-            request.data['token'] = access_token
+            request.data["token"] = access_token
 
         return super().post(request, *args, **kwargs)
 
@@ -289,8 +284,8 @@ class CustomProviderAuthView(ProviderAuthView):
             user = response.data.get("user")
             profile = models.UserProfile.objects.get(user__email=user)
             response.data["user"] = serializers.UserProfileSerializer(profile).data
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
+            access_token = response.data.get("access")
+            refresh_token = response.data.get("refresh")
 
             utils.set_auth_cookie(
                 response,
@@ -301,3 +296,22 @@ class CustomProviderAuthView(ProviderAuthView):
             )
 
         return response
+
+
+class ResendAccountActivationView(generics.GenericAPIView):
+    serializer_class = serializers.ResendAccountConfirmationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.session.get("user_id")
+        serializer = self.get_serializer(data={"user": user_id})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data.get("user")
+        notifications.AccountActivationEmail(
+            user=user,
+            data={
+                "user_id": user.id.hashid,
+                "token": tokens.account_activation_token.make_token(user),
+            },
+        ).send()
+        return Response(serializer.data, status=status.HTTP_200_OK)

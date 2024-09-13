@@ -11,9 +11,9 @@ class ListNotificationView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return models.Notification.objects.filter_by_user(
-            self.request.user
-        ).order_by('-created_at')
+        return models.Notification.objects.filter_by_user(self.request.user).order_by(
+            "-created_at"
+        )
 
 
 class UpdateNotificationView(generics.UpdateAPIView):
@@ -21,9 +21,9 @@ class UpdateNotificationView(generics.UpdateAPIView):
     serializer_class = serializers.NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    lookup_field = 'pk'
+    lookup_field = "pk"
     lookup_url_kwarg = None
-    
+
     def get_queryset(self):
         return models.Notification.objects.filter_by_user(self.request.user)
 
@@ -32,7 +32,7 @@ class MarkReadAllNotificationsView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.NotificationSerializer
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         services.NotificationService.mark_read_all_user_notifications(user=request.user)
         return Response({"ok": True}, status=status.HTTP_200_OK)
 
@@ -42,5 +42,7 @@ class NotificationPreferenceView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        obj, _ = models.NotificationPreference.objects.get_or_create(user=self.request.user)
+        obj, _ = models.NotificationPreference.objects.get_or_create(
+            user=self.request.user
+        )
         return obj

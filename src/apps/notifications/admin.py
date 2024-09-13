@@ -5,4 +5,4 @@ from . import models
 
 @admin.register(models.Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'type', 'message', 'user')
+    list_display = ('id', 'type', 'title', 'user')

@@ -47,6 +47,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "roles",
             "avatar",
             "is_subscribed",
+            "has_unread_notification",
             "otp_enabled",
         )
 

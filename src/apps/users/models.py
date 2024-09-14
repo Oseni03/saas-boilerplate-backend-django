@@ -118,3 +118,10 @@ class UserProfile(models.Model):
     def get_short_name(self):
         """Return the short name for the user."""
         return self.first_name
+    
+    @property
+    def has_unread_notification(self):
+        """
+        Check if the user has any unread notifications.
+        """
+        return self.user.notification_set.filter(read_at__isnull=True).exists()

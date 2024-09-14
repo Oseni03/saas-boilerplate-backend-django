@@ -24,16 +24,16 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
     re_path(r"^doc/", schema_view.with_ui("swagger")),
     re_path(r"^redoc/", schema_view.with_ui("redoc")),
     path(
-        "admin/", 
-        include(
-            [
-                path("", admin.site.urls)
-            ]
-        ),
+        "admin/",
+        include([path("", admin.site.urls)]),
     ),
     path(
         "api/",
@@ -42,6 +42,7 @@ urlpatterns = [
                 path("notifications/", include("apps.notifications.urls")),
                 path("tickets/", include("apps.tickets.urls")),
                 path("integrations/", include("apps.integrations.urls")),
+                path("tasks/", include("apps.aws_tasks.urls")),
                 path("", include("apps.users.urls")),
                 path("", include("apps.subscriptions.urls")),
             ]

@@ -78,6 +78,7 @@ LOCAL_APPS = [
     "apps.subscriptions",
     "apps.customers",
     "apps.integrations",
+    "apps.aws_tasks",
 ]
 
 INSTALLED_APPS = (
@@ -427,9 +428,6 @@ AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default=None)
 AWS_EXPORTS_STORAGE_BUCKET_NAME = env("AWS_EXPORTS_STORAGE_BUCKET_NAME", default=None)
 AWS_S3_ENDPOINT_URL = AWS_ENDPOINT_URL
 AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default=None)
-AWS_QUERYSTRING_EXPIRE = env("AWS_QUERYSTRING_EXPIRE", default=60 * 60 * 24)
-AWS_CLOUDFRONT_KEY = os.environ.get("AWS_CLOUDFRONT_KEY", "").encode("ascii")
-AWS_CLOUDFRONT_KEY_ID = os.environ.get("AWS_CLOUDFRONT_KEY_ID", None)
-USER_DATA_EXPORT_EXPIRY_SECONDS = env.int(
-    "USER_DATA_EXPORT_EXPIRY_SECONDS", 172800
-)  # 2 days default
+AWS_ACCESS_KEY_ID = "your-access-key"
+AWS_SECRET_ACCESS_KEY = "your-secret-key"
+AWS_SQS_QUEUE_URL = "your-sqs-queue-url"

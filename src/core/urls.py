@@ -42,7 +42,6 @@ urlpatterns = [
                 path("notifications/", include("apps.notifications.urls")),
                 path("tickets/", include("apps.tickets.urls")),
                 path("integrations/", include("apps.integrations.urls")),
-                path("tasks/", include("apps.aws_tasks.urls")),
                 path("", include("apps.users.urls")),
                 path("", include("apps.subscriptions.urls")),
             ]

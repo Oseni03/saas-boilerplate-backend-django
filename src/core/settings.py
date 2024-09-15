@@ -76,7 +76,6 @@ LOCAL_APPS = [
     "apps.subscriptions",
     "apps.customers",
     "apps.integrations",
-    "apps.aws_tasks",
 ]
 
 INSTALLED_APPS = (

@@ -5,8 +5,8 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
-from apps.aws_tasks.utils import get_task_name, send_task_to_sqs
-from apps.customers.tasks import create_user_free_subscription
+from apps.subscriptions.models import SubscriptionPrice, UserSubscription
+from common import billing
 
 from apps.users.signals import email_confirmed_signal
 from common import billing
@@ -56,8 +56,20 @@ def create_free_plan_subscription(sender, instance, created, **kwargs):
 
     if created:
         try:
-            task_name = get_task_name(create_user_free_subscription)
-            send_task_to_sqs(task_name=task_name, customer=instance)
+            price = SubscriptionPrice.objects.filter(trial_period_days__gt=0).first()
+            stripe_sub = billing.create_subscription(
+                instance.stripe_id,
+                price_id=price.stripe_id,
+                trial_period_days=price.trial_period_days,
+            )
+            UserSubscription.objects.create(
+                user=instance.user,
+                stripe_id=stripe_sub.get("stripe_id"),
+                status=stripe_sub.get("status"),
+                current_period_start=stripe_sub.get("current_period_start"),
+                current_period_end=stripe_sub.get("current_period_end"),
+                subscription=price.subscription,
+            )
         except AuthenticationError as e:
             logger.error(msg=e._message, exc_info=e)
             return

@@ -23,20 +23,19 @@ class TaskResult(models.Model):
 
     id: str = hashid_field.HashidAutoField(primary_key=True)
     task_name = models.CharField(
-        null=True,
         max_length=255,
         unique=True,
         verbose_name=_("Task Name"),
         help_text=_("Name of the Task which was run"),
     )
-    task_args = models.TextField(
+    task_args = models.JSONField(
         null=True,
         verbose_name=_("Task Positional Arguments"),
         help_text=_(
             "JSON representation of the positional arguments " "used with the task"
         ),
     )
-    task_kwargs = models.TextField(
+    task_kwargs = models.JSONField(
         null=True,
         verbose_name=_("Task Named Arguments"),
         help_text=_("JSON representation of the named arguments " "used with the task"),

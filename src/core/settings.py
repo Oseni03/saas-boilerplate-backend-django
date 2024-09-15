@@ -45,8 +45,6 @@ SECRET_KEY = "django-insecure-fl8wx8v^f+napyno=zf#)et=+4n7-uyovd+&n**jhf!bgd8z!)
 DEBUG = env("DJANGO_DEBUG")
 IS_LOCAL_DEBUG = DEBUG and ENVIRONMENT_NAME == "local"
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
-FRONTEND_DOMAIN_URL = env("FRONTEND_DOMAIN_URL")
-BACKEND_DOMAIN_URL = env("BACKEND_DOMAIN_URL")
 
 # Application definition
 
@@ -78,6 +76,7 @@ LOCAL_APPS = [
     "apps.subscriptions",
     "apps.customers",
     "apps.integrations",
+    "apps.aws_tasks",
 ]
 
 INSTALLED_APPS = (

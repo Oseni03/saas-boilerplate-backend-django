@@ -1,6 +1,7 @@
 import json
 import boto3
 import requests
+from django.conf import settings
 
 def lambda_handler(event, context):
     for record in event['Records']:
@@ -11,7 +12,7 @@ def lambda_handler(event, context):
 
         # Invoke the task by making an HTTP request to the Django app
         response = requests.post(
-            'https://your-django-app-url.com/execute-task/',
+            f'{settings.BACKEND_DOMAIN_URL}/execute-task/',
             data={
                 'task_name': task_name,
                 'args': json.dumps(args),

@@ -47,7 +47,7 @@ class TaskResult(models.Model):
         verbose_name=_("Task State"),
         help_text=_("Current state of the task being run"),
     )
-    result = models.TextField(
+    result = models.JSONField(
         null=True,
         default=None,
         editable=False,

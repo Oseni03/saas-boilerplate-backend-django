@@ -45,8 +45,6 @@ SECRET_KEY = "django-insecure-fl8wx8v^f+napyno=zf#)et=+4n7-uyovd+&n**jhf!bgd8z!)
 DEBUG = env("DJANGO_DEBUG")
 IS_LOCAL_DEBUG = DEBUG and ENVIRONMENT_NAME == "local"
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
-FRONTEND_DOMAIN_URL = env("FRONTEND_DOMAIN_URL")
-BACKEND_DOMAIN_URL = env("BACKEND_DOMAIN_URL")
 
 # Application definition
 
@@ -431,3 +429,4 @@ AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default=None)
 AWS_ACCESS_KEY_ID = "your-access-key"
 AWS_SECRET_ACCESS_KEY = "your-secret-key"
 AWS_SQS_QUEUE_URL = "your-sqs-queue-url"
+ENABLE_AWS_LAMBDA = env("ENABLE_AWS_LAMBDA", default=False)

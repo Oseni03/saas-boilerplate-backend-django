@@ -6,14 +6,23 @@ from django.core.cache import cache
 
 from .models import TaskResult, StateChoice
 
-sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
+sqs = None
+try:
+    sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
+except Exception as e:
+    if sqs is None and settings.ENABLE_AWS_LAMBDA:
+        raise e
+
+
+def get_task_name(func):
+    return f"{func.__module__}.{func.__name__}"
 
 
 def lambda_task(func):
     """
     Decorator to register a task and sync its logic with AWS Lambda.
     """
-    task_name = f"{func.__module__}.{func.__name__}"
+    task_name = get_task_name(func)
 
     # Register the task in the cache
     cache_key = f"task_{task_name}"

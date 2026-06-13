@@ -1,21 +1,21 @@
 scripts:
-  server:
-    - cd src && python manage.py runserver 8001
-  makemigrations:
-    - cd src && python manage.py makemigrations
-  migrate:
-    - cd src && python manage.py migrate
-  shell:
-    - cd src && python manage.py shell
-  create_superuser:
-    - cd src && python manage.py createsuperuser --email=admin@gmail.com
-  init_permissions:
-    - cd src && python manage.py init_permissions
-  sync_subs:
-    - cd src && python manage.py sync_subs
-  clear_dangling_subs:
-    - cd src && python manage.py sync_user_subscriptions --clear-dangling
-  sync_user_subs:
-    - cd src && python manage.py sync_user_subscriptions
-  clear_db:
-    - cd src && python manage.py flush
+    server:
+        - python manage.py runserver 8001
+    makemigrations:
+        - python manage.py makemigrations
+    migrate:
+        - python manage.py migrate
+    shell:
+        - python manage.py shell
+    create_superuser:
+        - python manage.py createsuperuser --email=admin@gmail.com
+    init_permissions:
+        - python manage.py init_permissions
+    sync_subs:
+        - python manage.py sync_subs
+    clear_dangling_subs:
+        - python manage.py sync_user_subscriptions --clear-dangling
+    sync_user_subs:
+        - python manage.py sync_user_subscriptions
+    clear_db:
+        - python manage.py flush

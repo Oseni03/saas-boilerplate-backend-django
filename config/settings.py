@@ -177,7 +177,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-AUTH_USER_MODEL = "apps.users.CustomUser"
+AUTH_USER_MODEL = "users.CustomUser"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -193,13 +193,13 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-CORS_ALLOWED_ORIGINS = True
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000",]
 
 SITE_ID = 1
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = ["email"]
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1", "password2"]
+# ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_UNIQUE_EMAIL = True
 
 from datetime import timedelta

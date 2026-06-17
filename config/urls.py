@@ -40,7 +40,8 @@ urlpatterns = [
         include(
             [
                 path("", include("apps.core.urls")),
-                path("auth/", include("apps.users.urls")),
+                path("auth/", include("apps.auth.urls")),
+                path("users/", include("apps.users.urls")),
                 path("organizations/", include("apps.organizations.urls")),
                 path("billing/", include("apps.billing.urls")),
                 path("notifications/", include("apps.notifications.urls")),

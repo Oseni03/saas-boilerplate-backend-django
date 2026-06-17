@@ -12,6 +12,8 @@ class CustomUser(AbstractUser):
     avatar_url = models.URLField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     mfa_secret = models.CharField(max_length=32, blank=True, null=True)
+    email_verification_token = models.CharField(max_length=32, blank=True, null=True)
+    password_reset_token = models.CharField(max_length=32, blank=True, null=True)
     mfa_enabled = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
